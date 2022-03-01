@@ -16,12 +16,12 @@ const registration = async (req, res) => {
     }
     await db.query(createUsersQuery);
 
-    return res.send({
+    return res.status(200).send({
       message: 'registration success'
     });
   } catch (err) {
     return res.status(500).send({
-      error: JSON.stringify(err)
+      error: JSON.stringify(err) || { message:  'something is wrong'}
     });
   }
 }
@@ -41,27 +41,25 @@ const login = async (req, res) => {
     const accurateUser = matchedUsers.rows[0];
 
     if (accurateUser === undefined) {
-      return res.status(500).send({ message: 'no such user', statusCode: 400 });
+      return res.status(404).send({ message: 'no such user' });
     }
 
     const isPasswordCorrect = passwordHash.verify(password, accurateUser.password);
 
     if(!isPasswordCorrect) {
-      return res.status(500).send({ message: 'username or password are not correct', statusCode: 403 });
+      return res.status(500).send({ message: 'username or password are not correct' });
     }
 
     const userData = { name: accurateUser.displayname ? accurateUser.displayname : accurateUser.fullname }
-
     const payload = { id: accurateUser.id, email: accurateUser.email };
-    const jwt = jwt.sign(payload, process.env.SECRET, { expiresIn: '24h' });
 
-    return res.send({
+    return res.status(200).send({
       userData,
-      jwt
+      jwt: jwt.sign(payload, '' + process.env.SECRET, { expiresIn: '24h' })
     });
   } catch (err) {
     return res.status(500).send({
-      error: JSON.stringify(err)
+      error: JSON.stringify(err) || { message:  'something is wrong'}
     });
   }
 }
