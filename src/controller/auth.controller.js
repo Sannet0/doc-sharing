@@ -2,7 +2,7 @@ const db = require('../modules/database.module');
 const passwordHash = require('password-hash');
 const jwt = require('jsonwebtoken');
 
-const singup = async (req, res) => {
+const signup = async (req, res) => {
   const { email, password, fullName, displayName } = req.body;
   try {
     const hash = passwordHash.generate(password);
@@ -26,7 +26,7 @@ const singup = async (req, res) => {
   }
 }
 
-const singin = async (req, res) => {
+const signin = async (req, res) => {
   const { email, password } = req.query;
   try {
     const userQuery = {
@@ -65,6 +65,6 @@ const singin = async (req, res) => {
 }
 
 module.exports = {
-  singup,
-  singin
+  signup,
+  signin
 }
