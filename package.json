@@ -21,12 +21,16 @@
   "dependencies": {
     "dotenv": "^16.0.0",
     "express": "^4.17.3",
+    "install": "^0.13.0",
     "jest": "^27.5.1",
     "joi": "^17.6.0",
     "jsonwebtoken": "^8.5.1",
     "nodemon": "^2.0.15",
+    "npm": "^8.5.2",
     "password-hash": "^1.2.2",
-    "pg": "^8.7.3"
+    "pg": "^8.7.3",
+    "swagger-jsdoc": "^6.0.1",
+    "swagger-ui-express": "^4.1.6"
   },
   "devDependencies": {
     "cors": "^2.8.5"

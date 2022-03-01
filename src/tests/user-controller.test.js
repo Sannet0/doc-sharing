@@ -37,8 +37,6 @@ jest.mock('../modules/database.module', () => ({
         return { rows: [] };
       }
     }
-
-    console.log("LOOOG", replacedQuery, stringValues);
   }
 }));
 
