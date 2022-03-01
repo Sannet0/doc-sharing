@@ -2,7 +2,7 @@ const db = require('../modules/database.module');
 const passwordHash = require('password-hash');
 const jwt = require('jsonwebtoken');
 
-const registration = async (req, res) => {
+const singup = async (req, res) => {
   const { email, password, fullName, displayName } = req.body;
   try {
     const hash = passwordHash.generate(password);
@@ -26,7 +26,7 @@ const registration = async (req, res) => {
   }
 }
 
-const login = async (req, res) => {
+const singin = async (req, res) => {
   const { email, password } = req.query;
   try {
     const userQuery = {
@@ -40,7 +40,7 @@ const login = async (req, res) => {
     const matchedUsers = await db.query(userQuery);
     const accurateUser = matchedUsers.rows[0];
 
-    if (accurateUser === undefined) {
+    if (!accurateUser) {
       return res.status(404).send({ message: 'no such user' });
     }
 
@@ -65,6 +65,6 @@ const login = async (req, res) => {
 }
 
 module.exports = {
-  registration,
-  login
+  singup,
+  singin
 }

@@ -1,4 +1,4 @@
-const { login, registration } = require('../controller/user.controller');
+const { singin, singup } = require('../controller/auth.controller');
 jest.mock('password-hash', () => ({
   generate: (password) => {
     return 'hash';
@@ -53,7 +53,7 @@ const res = {
   }
 };
 
-describe('login', () => {
+describe('singin', () => {
   it('should return token and user data', async () => {
     const req = {
       query: {
@@ -65,7 +65,7 @@ describe('login', () => {
     res.text = '';
     res.statusCode = 200;
 
-    await login(req, res);
+    await singin(req, res);
 
     expect(res.statusCode).toEqual(200);
     expect(res.text).toEqual({
@@ -84,7 +84,7 @@ describe('login', () => {
     res.text = '';
     res.statusCode = 200;
 
-    await login(req, res);
+    await singin(req, res);
 
     expect(res.statusCode).toEqual(404);
     expect(res.text).toEqual({
@@ -102,7 +102,7 @@ describe('login', () => {
     res.text = '';
     res.statusCode = 500;
 
-    await login(req, res);
+    await singin(req, res);
 
     expect(res.statusCode).toEqual(500);
     expect(res.text).toEqual({
@@ -125,7 +125,7 @@ describe('registration', () => {
     res.text = '';
     res.statusCode = 200;
 
-    await registration(req, res);
+    await singup(req, res);
 
     expect(res.statusCode).toEqual(200);
     expect(res.text).toEqual({ message: "registration success" });

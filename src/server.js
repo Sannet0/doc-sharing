@@ -6,16 +6,15 @@ const swaggerJSDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 require('dotenv').config();
 
-const userRoutes = require('./routes/user.route');
+const authRoutes = require('./routes/auth.route');
 const port = process.env.PORT || 3000;
-
 
 app.use(cors({
   origin: '*',
   methods: 'GET, POST'
 }));
 app.use(express.json());
-app.use('/user', userRoutes);
+app.use('/auth', authRoutes);
 
 const options = {
   definition: {

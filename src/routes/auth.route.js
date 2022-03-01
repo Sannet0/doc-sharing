@@ -1,14 +1,14 @@
 const router = require('express').Router();
-const userController = require('../controller/user.controller');
+const authController = require('../controller/auth.controller');
 const validator = require('../middelwares/validation.middleware');
-const { loginSchema, registerSchema } = require('../validators/validation.schemas');
+const { singinShema, singupShema } = require('../validators/validation.schemas');
 
 /**
  * @swagger
- * /user/login:
+ * /auth/singin:
  *   get:
  *     summary: user login
- *     tags: [User]
+ *     tags: [Auth]
  *     parameters:
  *       - in: query
  *         name: email
@@ -26,14 +26,14 @@ const { loginSchema, registerSchema } = require('../validators/validation.schema
  *       200:
  *         description: jwt token and user data
  */
-router.get('/login', validator(loginSchema, true), userController.login);
+router.get('/singin', validator(singinShema, true), authController.singin);
 
 /**
  * @swagger
- * /user/registration:
+ * /auth/singup:
  *   post:
  *     summary: user registration
- *     tags: [User]
+ *     tags: [Auth]
  *     parameters:
  *       - in: body
  *         name: email
@@ -63,6 +63,6 @@ router.get('/login', validator(loginSchema, true), userController.login);
  *       200:
  *         description: message
  */
-router.post('/registration', validator(registerSchema), userController.registration);
+router.post('/singup', validator(singupShema), authController.singup);
 
 module.exports = router;
