@@ -58,8 +58,8 @@ const signin = async (req, res) => {
         fullName: accurateUser.fullname
       },
       authData: {
-        accessToken: jwt.sign(payload, '' + process.env.SECRET, { expiresIn: '24h' }),
-        refreshToken: jwt.sign(payload, '' + process.env.SECRET, { expiresIn: '30m' })
+        accessToken: jwt.sign(payload, '' + process.env.SECRET, { expiresIn: '30m' }),
+        refreshToken: jwt.sign(payload, '' + process.env.SECRET, { expiresIn: '24h' })
       }
     });
   } catch (err) {
