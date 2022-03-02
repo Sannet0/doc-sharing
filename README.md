@@ -29,6 +29,10 @@ $ npm run test
 On this project used [postgreSQL](https://www.postgresql.org/). To use this project you need create database and create some tables.
 
 ```bash
+# create database
+
+    CREATE DATABASE doc_sharing;
+
 # users table
 
     CREATE TABLE users (
