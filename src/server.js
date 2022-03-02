@@ -4,7 +4,7 @@ const cors = require('cors');
 const http = require('http').createServer(app);
 const swaggerJSDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
-require('dotenv').config();
+require('dotenv').config({ path: __dirname + '/.env'});
 
 const authRoutes = require('./routes/auth.route');
 const port = process.env.PORT || 3000;
@@ -23,7 +23,7 @@ const options = {
       title: 'REST api docs',
     },
   },
-  apis: ["./src/routes/*.js"],
+  apis: ['./src/routes/*.js'],
 };
 const swaggerSpec = swaggerJSDoc(options);
 

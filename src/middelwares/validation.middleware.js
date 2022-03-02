@@ -1,12 +1,10 @@
-const Validators = require('../validators/validation.schemas');
-
-module.exports = (validator, isQuery) => {
+module.exports = (validator, isQuery = false) => {
   return async (req, res, next) => {
     try {
       if (isQuery) {
         req.query = await validator.validateAsync(req.query);
       } else {
-        req.body = await Validators[validator].validateAsync(req.body);
+        req.body = await validator.validateAsync(req.body);
       }
 
       next();
