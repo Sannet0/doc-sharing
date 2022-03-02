@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const authController = require('../controller/auth.controller');
 const validator = require('../middelwares/validation.middleware');
-const { signinShema, signupShema } = require('../validators/validation.schemas');
+const validatorSchemas = require('../validators/validation.schemas');
 
 /**
  * @swagger
@@ -26,7 +26,7 @@ const { signinShema, signupShema } = require('../validators/validation.schemas')
  *       200:
  *         description: jwt token and user data
  */
-router.get('/signin', validator(signinShema, true), authController.signin);
+router.get('/signin', validator(validatorSchemas.signinSchema, true), authController.signin);
 
 /**
  * @swagger
@@ -63,6 +63,6 @@ router.get('/signin', validator(signinShema, true), authController.signin);
  *       200:
  *         description: message
  */
-router.post('/signup', validator(signupShema), authController.signup);
+router.post('/signup', validator(validatorSchemas.signupSchema), authController.signup);
 
 module.exports = router;

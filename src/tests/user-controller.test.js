@@ -20,12 +20,12 @@ jest.mock('../modules/database.module', () => ({
     if(replacedQuery === 'SELECT*FROMusersWHEREemail=$1LIMIT1') {
       if(stringValues === 'email@mail.com') {
         return { rows: [{
-          id: 1,
-          email: 'email@mail.com',
-          password: 'hash',
-          fullname: 'John Doe',
-          displayname: 'John'
-        }] }
+            id: 1,
+            email: 'email@mail.com',
+            password: 'hash',
+            fullname: 'John Doe',
+            displayname: 'John'
+          }] }
       }
 
       if(stringValues === 'notemail@mail.com') {
@@ -69,8 +69,8 @@ describe('signin', () => {
 
     expect(res.statusCode).toEqual(200);
     expect(res.text).toEqual({
-        jwt: "token",
-        userData: { name: "John" }
+      jwt: "token",
+      userData: { name: "John" }
     });
   });
   it('should return error "no such user"', async () => {
