@@ -23,7 +23,7 @@ const options = {
       title: 'REST api docs',
     },
   },
-  apis: ['./src/routes/*.js'],
+  apis: [__dirname + '/routes/*.js'],
 };
 const swaggerSpec = swaggerJSDoc(options);
 
