@@ -1,4 +1,4 @@
-## Installation
+# Installation
 
 ```bash
 $ npm install
@@ -24,7 +24,7 @@ $ npm run start:prod
 $ npm run test
 ```
 
-## Database
+# Database
 
 On this project used [postgreSQL](https://www.postgresql.org/). To use this project you need create database and create some tables.
 
@@ -69,3 +69,17 @@ On this project used [postgreSQL](https://www.postgresql.org/). To use this proj
       user_id INT REFERENCES users (id) NOT NULL
     );
 ```
+
+# Server codes
+
+## Errors codes
+
+* INTERNAL_ERROR
+* USER_EXIST
+* VALIDATOR_ERROR
+* INVALID_EMAIL_OR_PASSWORD
+* INVALID_TOKEN
+
+## Success Codes
+
+* SUCCESS_REGISTRATION
