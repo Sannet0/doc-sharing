@@ -3,25 +3,25 @@ const passwordHash = require('password-hash');
 const jwt = require('jsonwebtoken');
 
 const signup = async (req, res) => {
-  const { email, password, fullName, displayName } = req.body;
+  let { email, password, fullName, displayName } = req.body;
   try {
     const hash = passwordHash.generate(password);
 
     const createUsersQuery = {
       text: `
           INSERT INTO users ("email", "password", "fullname", "displayname")
-          VALUES (1$, $2, 3$, $4)
-        `,
+          VALUES ($1, $2, $3, $4)
+      `,
       values: [email, hash, fullName, displayName]
     }
     await db.query(createUsersQuery);
 
-    return res.status(200).send({
+    return res.status(201).send({
       message: 'registration success'
     });
   } catch (err) {
     return res.status(500).send({
-      error: JSON.stringify(err) || { message:  'something is wrong'}
+      message: JSON.stringify(err)
     });
   }
 }
@@ -41,7 +41,7 @@ const signin = async (req, res) => {
     const accurateUser = matchedUsers.rows[0];
 
     if (!accurateUser) {
-      return res.status(404).send({ message: 'no such user' });
+      return res.status(404).send({ message: 'invalid email or password' });
     }
 
     const isPasswordCorrect = passwordHash.verify(password, accurateUser.password);
@@ -50,16 +50,21 @@ const signin = async (req, res) => {
       return res.status(500).send({ message: 'username or password are not correct' });
     }
 
-    const userData = { name: accurateUser.displayname ? accurateUser.displayname : accurateUser.fullname }
     const payload = { id: accurateUser.id, email: accurateUser.email };
 
     return res.status(200).send({
-      userData,
-      jwt: jwt.sign(payload, '' + process.env.SECRET, { expiresIn: '24h' })
+      userData: {
+        displayName: accurateUser.displayname,
+        fullName: accurateUser.fullname
+      },
+      authData: {
+        accessToken: jwt.sign(payload, '' + process.env.SECRET, { expiresIn: '30m' }),
+        refreshToken: jwt.sign(payload, '' + process.env.SECRET, { expiresIn: '24h' })
+      }
     });
   } catch (err) {
     return res.status(500).send({
-      error: JSON.stringify(err) || { message:  'something is wrong'}
+      message: JSON.stringify(err)
     });
   }
 }
