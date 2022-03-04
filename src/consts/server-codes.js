@@ -6,11 +6,6 @@ const errorsCodes = {
   invalidToken: 'INVALID_TOKEN'
 }
 
-const successCodes = {
-  successRegistration: 'SUCCESS_REGISTRATION',
-}
-
 module.exports = {
-  errorsCodes,
-  successCodes
+  errorsCodes
 }
