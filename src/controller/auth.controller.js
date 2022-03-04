@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const fs = require('fs');
 const con = require('../consts/base-const');
 const sharp = require('sharp');
-const { errorsCodes, successCodes} = require('../consts/server-codes');
+const { errorsCodes, successCodes } = require('../consts/server-codes');
 
 const extractTypeBase64 = (image) => {
   if(image) {
@@ -69,7 +69,6 @@ const signup = async (req, res) => {
       message: 'registration success'
     });
   } catch (err) {
-    console.log("LOOOG", err);
     if(err.file === 'nbtinsert.c') {
       if(err.code === '23505') {
         return res.status(500).send({
@@ -102,7 +101,7 @@ const signin = async (req, res) => {
 
     if (!accurateUser) {
       return res.status(404).send({
-        code: errorsCodes.invalidEmailOrPassword,
+        code: errorsCodes.invalidUser,
         message: 'no such user'
       });
     }
@@ -111,7 +110,7 @@ const signin = async (req, res) => {
 
     if(!isPasswordCorrect) {
       return res.status(500).send({
-        code: errorsCodes.invalidEmailOrPassword,
+        code: errorsCodes.invalidUser,
         message: 'invalid email or password'
       });
     }
