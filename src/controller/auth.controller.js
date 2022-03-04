@@ -101,7 +101,7 @@ const signin = async (req, res) => {
 
     if (!accurateUser) {
       return res.status(404).send({
-        code: errorsCodes.invalidEmailOrPassword,
+        code: errorsCodes.invalidUser,
         message: 'no such user'
       });
     }
@@ -110,7 +110,7 @@ const signin = async (req, res) => {
 
     if(!isPasswordCorrect) {
       return res.status(500).send({
-        code: errorsCodes.invalidEmailOrPassword,
+        code: errorsCodes.invalidUser,
         message: 'invalid email or password'
       });
     }
