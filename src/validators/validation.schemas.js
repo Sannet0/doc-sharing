@@ -1,7 +1,7 @@
 const Joi = require('joi');
 
 const base64Parse = (base64) => {
-  const data = base64.split(/\s/g);
+  const data = base64.split(',');
   return data[1];
 };
 
@@ -15,7 +15,7 @@ const signinSchema = Joi.object({
 });
 
 const signupSchema = Joi.object({
-  displayName: Joi.string().trim().min(4).max(32),
+  displayName: Joi.string().trim().empty().min(4).max(32),
   fullName: Joi.string().trim().min(4).max(32).required(),
   email: Joi.string().email().trim().min(4).max(32).required(),
   password: Joi.string().trim().min(4).max(32).required(),
