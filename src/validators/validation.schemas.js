@@ -1,7 +1,7 @@
 const Joi = require('joi');
 
 const base64Parse = (base64) => {
-  const data = base64.split(/\s/g);
+  const data = base64.split(',');
   return data[1];
 };
 
