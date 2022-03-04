@@ -74,7 +74,8 @@ On this project used [postgreSQL](https://www.postgresql.org/). To use this proj
     CREATE TABLE folders (
         id SERIAL PRIMARY KEY,
         name varchar(100) NOT NULL,
-        origin_forler_id INT REFERENCES folders (id)
+        origin_folder_id INT REFERENCES folders (id),
+        creator_id INT REFERENCES users (id) NOT NULL
     ); 
       
 # folder_hierarchy table
