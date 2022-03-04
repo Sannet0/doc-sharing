@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const fs = require('fs');
 const con = require('../consts/base-const');
 const sharp = require('sharp');
-const { errorsCodes, successCodes } = require('../consts/server-codes');
+const { errorsCodes } = require('../consts/server-codes');
 
 const extractTypeBase64 = (image) => {
   if(image) {
@@ -65,7 +65,6 @@ const signup = async (req, res) => {
     }
 
     return res.status(201).send({
-      code: successCodes.successRegistration,
       message: 'registration success'
     });
   } catch (err) {
@@ -131,13 +130,14 @@ const signin = async (req, res) => {
     return res.status(200).send({
       userData: {
         displayName: accurateUser.displayname,
-        fullName: accurateUser.fullname
+        fullName: accurateUser.fullname,
+        email: accurateUser.email,
+        miniatureAvatar: actualImage?.miniature,
+        originalAvatar: actualImage?.original
       },
       authData: {
         accessToken: jwt.sign(payload, '' + process.env.SECRET, { expiresIn: '30m' }),
-        refreshToken: jwt.sign(payload, '' + process.env.SECRET, { expiresIn: '24h' }),
-        miniatureAvatar: actualImage?.miniature,
-        originalAvatar: actualImage?.original
+        refreshToken: jwt.sign(payload, '' + process.env.SECRET, { expiresIn: '24h' })
       }
     });
   } catch (err) {
