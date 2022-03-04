@@ -15,11 +15,11 @@ const signinSchema = Joi.object({
 });
 
 const signupSchema = Joi.object({
-  displayName: Joi.string().trim().empty().min(4).max(32),
+  displayName: Joi.any(),
   fullName: Joi.string().trim().min(4).max(32).required(),
   email: Joi.string().email().trim().min(4).max(32).required(),
   password: Joi.string().trim().min(4).max(32).required(),
-  avatarImage: Joi.string().custom(base64Parse).base64().custom(origValue).empty()
+  avatarImage: Joi.any()
 });
 
 module.exports = {
