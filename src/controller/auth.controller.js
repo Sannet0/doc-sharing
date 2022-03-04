@@ -4,16 +4,34 @@ const jwt = require('jsonwebtoken');
 const fs = require('fs');
 const con = require('../consts/base-const');
 const sharp = require('sharp');
-const { errorsCodes } = require('../consts/server-codes');
+const { errorsCodes, successCodes} = require('../consts/server-codes');
+
+const extractTypeBase64 = (image) => {
+  if(image) {
+    const data = image.split(/\s/g);
+    const info = data[0].split(/[^a-zа-яё0-9]/gi);
+
+    return {
+      base64: data[1],
+      type: info[2]
+    }
+  }
+
+  return {
+    base64: '',
+    type: ''
+  }
+}
 
 const signup = async (req, res) => {
   let { email, password, fullName, displayName, avatarImage } = req.body;
+  let miniatureAvatarImage = '';
+  avatarImage = extractTypeBase64(avatarImage)
 
   try {
-    let miniatureAvatarImage = '';
-    const imageBase64 = avatarImage.base64;
+    const imageBase64 = avatarImage?.base64;
 
-    if(imageBase64){
+    if(imageBase64) {
       const filePath = con.correctOriginPath() + '/src/files/temporary/avatar-' + email + '.' + avatarImage.type;
 
       fs.writeFileSync(filePath, imageBase64, { encoding: 'base64' });
@@ -35,20 +53,23 @@ const signup = async (req, res) => {
     const createUsersReturnValues = await db.query(createUsersQuery);
     const userId =  createUsersReturnValues.rows[0].id;
 
-    const saveUserAvatarImage = {
-      text: `
+    if(imageBase64) {
+      const saveUserAvatarImage = {
+        text: `
         INSERT INTO user_profile_photo ("original", "miniature", "user_id")
         VALUES ($1, $2, $3)
       `,
-      values: [imageBase64, miniatureAvatarImage, userId]
+        values: [imageBase64, miniatureAvatarImage, userId]
+      }
+      await db.query(saveUserAvatarImage);
     }
-    await db.query(saveUserAvatarImage);
 
     return res.status(201).send({
-      code: errorsCodes.successRegistration,
+      code: successCodes.successRegistration,
       message: 'registration success'
     });
   } catch (err) {
+    console.log("LOOOG", err);
     if(err.file === 'nbtinsert.c') {
       if(err.code === '23505') {
         return res.status(500).send({
@@ -116,8 +137,8 @@ const signin = async (req, res) => {
       authData: {
         accessToken: jwt.sign(payload, '' + process.env.SECRET, { expiresIn: '30m' }),
         refreshToken: jwt.sign(payload, '' + process.env.SECRET, { expiresIn: '24h' }),
-        miniatureAvatar: actualImage.miniature,
-        originalAvatar: actualImage.original
+        miniatureAvatar: actualImage?.miniature,
+        originalAvatar: actualImage?.original
       }
     });
   } catch (err) {
