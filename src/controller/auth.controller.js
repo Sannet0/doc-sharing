@@ -8,7 +8,7 @@ const { errorsCodes } = require('../consts/server-codes');
 
 const extractTypeBase64 = (image) => {
   if(image) {
-    const data = image.split(/\s/g);
+    const data = image.split(',');
     const info = data[0].split(/[^a-zа-яё0-9]/gi);
 
     return {
