@@ -126,13 +126,14 @@ describe('signin', () => {
     expect(res.text).toEqual({
       userData: {
         displayName: 'John',
-        fullName: 'John Doe'
+        fullName: 'John Doe',
+        email: 'email@mail.com',
+        miniatureAvatar: 'cGhvdG8=',
+        originalAvatar: 'cGhvdG8='
       },
       authData: {
         accessToken: 'token',
-        refreshToken: 'token',
-        miniatureAvatar: 'photo',
-        originalAvatar: 'photo'
+        refreshToken: 'token'
       }
     });
   });
@@ -153,13 +154,14 @@ describe('signin', () => {
     expect(res.text).toEqual({
       userData: {
         displayName: 'John2',
-        fullName: 'John Doe'
+        email: 'email2@mail.com',
+        fullName: 'John Doe',
+        miniatureAvatar: '',
+        originalAvatar: ''
       },
       authData: {
         accessToken: 'token',
-        refreshToken: 'token',
-        miniatureAvatar: undefined,
-        originalAvatar: undefined
+        refreshToken: 'token'
       }
     });
   });
@@ -178,7 +180,7 @@ describe('signin', () => {
 
     expect(res.statusCode).toEqual(404);
     expect(res.text).toEqual({
-      code: errorsCodes.invalidEmailOrPassword,
+      code: errorsCodes.invalidUser,
       message: 'no such user'
     });
   });
@@ -197,7 +199,7 @@ describe('signin', () => {
 
     expect(res.statusCode).toEqual(500);
     expect(res.text).toEqual({
-      code: errorsCodes.invalidEmailOrPassword,
+      code: errorsCodes.invalidUser,
       message: 'invalid email or password'
     });
   });
@@ -221,7 +223,6 @@ describe('registration', () => {
 
     expect(res.statusCode).toEqual(201);
     expect(res.text).toEqual({
-      code: successCodes.successRegistration,
       message: 'registration success'
     });
   });
@@ -243,7 +244,6 @@ describe('registration', () => {
 
     expect(res.statusCode).toEqual(201);
     expect(res.text).toEqual({
-      code: successCodes.successRegistration,
       message: 'registration success'
     });
   });

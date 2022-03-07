@@ -4,11 +4,11 @@ const jwt = require('jsonwebtoken');
 const fs = require('fs');
 const con = require('../consts/base-const');
 const sharp = require('sharp');
-const { errorsCodes, successCodes } = require('../consts/server-codes');
+const { errorsCodes } = require('../consts/server-codes');
 
 const extractTypeBase64 = (image) => {
   if(image) {
-    const data = image.split(/\s/g);
+    const data = image.split(',');
     const info = data[0].split(/[^a-zа-яё0-9]/gi);
 
     return {
@@ -26,6 +26,7 @@ const extractTypeBase64 = (image) => {
 const signup = async (req, res) => {
   let { email, password, fullName, displayName, avatarImage } = req.body;
   let miniatureAvatarImage = '';
+  let originalAvatarImage = '';
   avatarImage = extractTypeBase64(avatarImage)
 
   try {
@@ -36,8 +37,10 @@ const signup = async (req, res) => {
 
       fs.writeFileSync(filePath, imageBase64, { encoding: 'base64' });
       const miniatureBuffer = await sharp(filePath).resize(48).toBuffer();
+      const base64orig = 'data:image/' + avatarImage.type + ';base64,';
 
-      miniatureAvatarImage = miniatureBuffer.toString('base64');
+      originalAvatarImage = base64orig + imageBase64;
+      miniatureAvatarImage = base64orig + miniatureBuffer.toString('base64');
       fs.rmSync(filePath);
     }
     const hash = passwordHash.generate(password);
@@ -59,13 +62,12 @@ const signup = async (req, res) => {
         INSERT INTO user_profile_photo ("original", "miniature", "user_id")
         VALUES ($1, $2, $3)
       `,
-        values: [imageBase64, miniatureAvatarImage, userId]
+        values: [originalAvatarImage, miniatureAvatarImage, userId]
       }
       await db.query(saveUserAvatarImage);
     }
 
     return res.status(201).send({
-      code: successCodes.successRegistration,
       message: 'registration success'
     });
   } catch (err) {
@@ -130,10 +132,11 @@ const signin = async (req, res) => {
 
     return res.status(200).send({
       userData: {
-        displayName: accurateUser.displayname,
+        displayName: accurateUser.displayname || '',
         fullName: accurateUser.fullname,
-        miniatureAvatar: actualImage?.miniature,
-        originalAvatar: actualImage?.original
+        email: accurateUser.email,
+        miniatureAvatar: Buffer.from(actualImage?.miniature  || '').toString('base64'),
+        originalAvatar: Buffer.from(actualImage?.miniature  || '').toString('base64')
       },
       authData: {
         accessToken: jwt.sign(payload, '' + process.env.SECRET, { expiresIn: '30m' }),

@@ -46,10 +46,17 @@ On this project used [postgreSQL](https://www.postgresql.org/). To use this proj
 # user_profile_photo  table
   
     CREATE TABLE user_profile_photo (
+<<<<<<< HEAD
         id SERIAL PRIMARY KEY,
         original BYTEA NOT NULL,
         miniature BYTEA NOT NULL,
         user_id INT REFERENCES users (id) NOT NULL
+=======
+      id SERIAL PRIMARY KEY,
+      original TEXT NOT NULL,
+      miniature TEXT NOT NULL,
+      user_id INT REFERENCES users (id) NOT NULL
+>>>>>>> 1961d70d7115835c32b9415dd9fd738f788a7513
     );
   
 # files table
