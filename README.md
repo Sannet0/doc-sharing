@@ -47,8 +47,8 @@ On this project used [postgreSQL](https://www.postgresql.org/). To use this proj
   
     CREATE TABLE user_profile_photo (
       id SERIAL PRIMARY KEY,
-      original BYTEA NOT NULL,
-      miniature BYTEA NOT NULL,
+      original TEXT NOT NULL,
+      miniature TEXT NOT NULL,
       user_id INT REFERENCES users (id) NOT NULL
     );
   

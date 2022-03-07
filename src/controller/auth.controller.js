@@ -26,6 +26,7 @@ const extractTypeBase64 = (image) => {
 const signup = async (req, res) => {
   let { email, password, fullName, displayName, avatarImage } = req.body;
   let miniatureAvatarImage = '';
+  let originalAvatarImage = '';
   avatarImage = extractTypeBase64(avatarImage)
 
   try {
@@ -36,8 +37,10 @@ const signup = async (req, res) => {
 
       fs.writeFileSync(filePath, imageBase64, { encoding: 'base64' });
       const miniatureBuffer = await sharp(filePath).resize(48).toBuffer();
+      const base64orig = 'data:image/' + avatarImage.type + ';base64,';
 
-      miniatureAvatarImage = miniatureBuffer.toString('base64');
+      originalAvatarImage = base64orig + imageBase64;
+      miniatureAvatarImage = base64orig + miniatureBuffer.toString('base64');
       fs.rmSync(filePath);
     }
     const hash = passwordHash.generate(password);
@@ -59,7 +62,7 @@ const signup = async (req, res) => {
         INSERT INTO user_profile_photo ("original", "miniature", "user_id")
         VALUES ($1, $2, $3)
       `,
-        values: [imageBase64, miniatureAvatarImage, userId]
+        values: [originalAvatarImage, miniatureAvatarImage, userId]
       }
       await db.query(saveUserAvatarImage);
     }
@@ -129,11 +132,11 @@ const signin = async (req, res) => {
 
     return res.status(200).send({
       userData: {
-        displayName: accurateUser.displayname,
+        displayName: accurateUser.displayname || '',
         fullName: accurateUser.fullname,
         email: accurateUser.email,
-        miniatureAvatar: Buffer.from(actualImage?.miniature).toString('base64'),
-        originalAvatar: Buffer.from(actualImage?.original).toString('base64')
+        miniatureAvatar: Buffer.from(actualImage?.miniature  || '').toString('base64'),
+        originalAvatar: Buffer.from(actualImage?.miniature  || '').toString('base64')
       },
       authData: {
         accessToken: jwt.sign(payload, '' + process.env.SECRET, { expiresIn: '30m' }),
