@@ -5,7 +5,7 @@ const http = require('http').createServer(app);
 const swaggerJSDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 const con = require('./consts/base-const');
-require('dotenv').config({ path: con.correctOriginPath(1) + '/.env'});
+require('dotenv').config({ path: con.correctOriginPath() + '/.env'});
 
 const authRoutes = require('./routes/auth.route');
 const port = process.env.PORT || 3000;
