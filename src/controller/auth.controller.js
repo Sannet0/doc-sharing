@@ -132,8 +132,8 @@ const signin = async (req, res) => {
         displayName: accurateUser.displayname,
         fullName: accurateUser.fullname,
         email: accurateUser.email,
-        miniatureAvatar: actualImage?.miniature,
-        originalAvatar: actualImage?.original
+        miniatureAvatar: Buffer.from(actualImage?.miniature).toString('base64'),
+        originalAvatar: Buffer.from(actualImage?.original).toString('base64')
       },
       authData: {
         accessToken: jwt.sign(payload, '' + process.env.SECRET, { expiresIn: '30m' }),
