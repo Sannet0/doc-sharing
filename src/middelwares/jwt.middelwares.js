@@ -8,8 +8,6 @@ module.exports = async (req, res, next) => {
     const type = authHeader[0];
     const token = authHeader[1];
 
-    console.log("LOOOG", req.header('Authorization'));
-
     if (type !== 'Bearer') {
       return res.status(401).send({
         message: 'invalid token type'
