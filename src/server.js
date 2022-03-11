@@ -19,9 +19,7 @@ app.use(cors({
   methods: 'GET, POST, PATCH, DELETE'
 }));
 app.use(express.json({ limit: '50mb' }));
-app.use('/hello', (req, res) => {
-  return res.send('Hello this is doc-sharing api!')
-});
+
 app.use('/auth', authRoutes);
 app.use('/folders', jwtMiddleware, folderRoutes);
 app.use('/docs', swaggerUi.serve);
@@ -31,6 +29,10 @@ if (process.env.IS_PRODUCTION === '1') {
 } else if (process.env.IS_PRODUCTION === '0') {
   app.get('/docs', swaggerUi.setup(devSwaggerDocument));
 }
+
+app.use('/', (req, res) => {
+  return res.send('Hello this is doc-sharing api!')
+});
 
 http.listen(port, () => {
   console.log(`[server] listening on port :${ port }`);
