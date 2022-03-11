@@ -1,14 +1,14 @@
 const errorsCodes = {
   internalError: 'INTERNAL_ERROR',
   userExist: 'USER_EXIST',
+  folderExist: 'FOLDER_EXIST',
   validatorError: 'VALIDATOR_ERROR',
+  invalidFolder: 'INVALID_FOLDER',
   invalidUser: 'INVALID_USER',
-  invalidToken: 'INVALID_TOKEN'
+  invalidToken: 'INVALID_TOKEN',
+  fileSystemError: 'FILE_SYSTEM_ERROR'
 }
-<<<<<<< HEAD
 
-=======
->>>>>>> 1961d70d7115835c32b9415dd9fd738f788a7513
 module.exports = {
   errorsCodes
 }

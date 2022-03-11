@@ -1,3 +1,5 @@
+#Doc-sharing#1.2.0
+
 # Installation
 
 ```bash
@@ -46,17 +48,10 @@ On this project used [postgreSQL](https://www.postgresql.org/). To use this proj
 # user_profile_photo  table
   
     CREATE TABLE user_profile_photo (
-<<<<<<< HEAD
-        id SERIAL PRIMARY KEY,
-        original BYTEA NOT NULL,
-        miniature BYTEA NOT NULL,
-        user_id INT REFERENCES users (id) NOT NULL
-=======
       id SERIAL PRIMARY KEY,
       original TEXT NOT NULL,
       miniature TEXT NOT NULL,
       user_id INT REFERENCES users (id) NOT NULL
->>>>>>> 1961d70d7115835c32b9415dd9fd738f788a7513
     );
   
 # files table
@@ -66,7 +61,8 @@ On this project used [postgreSQL](https://www.postgresql.org/). To use this proj
         path VARCHAR(100) NOT NULL,
         displayname VARCHAR(100) NOT NULL,
         type VARCHAR(100) NOT NULL,
-        creator_user_id INT REFERENCES users (id) NOT NULL
+        folder_id INT REFERENCES folders (id) ON DELETE CASCADE,
+        creator_id INT REFERENCES users (id) NOT NULL
     );
   
 # shared-files table
@@ -81,28 +77,15 @@ On this project used [postgreSQL](https://www.postgresql.org/). To use this proj
     CREATE TABLE folders (
         id SERIAL PRIMARY KEY,
         name varchar(100) NOT NULL,
-        origin_folder_id INT REFERENCES folders (id),
+        origin_folder_id INT REFERENCES folders (id) ON DELETE CASCADE,
         creator_id INT REFERENCES users (id) NOT NULL
-    ); 
-      
-# folder_hierarchy table
-
-    CREATE TABLE folder_hierarchy (
-        folders_id INT REFERENCES folders (id) NOT NULL,
-        file_id INT REFERENCES files (id) NOT NULL
     );
 ```
 
 # Server codes
-
-## Errors codes
 
 * INTERNAL_ERROR
 * USER_EXIST
 * VALIDATOR_ERROR
 * INVALID_EMAIL_OR_PASSWORD
 * INVALID_TOKEN
-
-## Success Codes
-
-* SUCCESS_REGISTRATION

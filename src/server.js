@@ -2,33 +2,32 @@ const express = require('express');
 const app = express();
 const cors = require('cors');
 const http = require('http').createServer(app);
-const swaggerJSDoc = require('swagger-jsdoc');
-const swaggerUi = require('swagger-ui-express');
 const con = require('./consts/base-const');
 require('dotenv').config({ path: con.correctOriginPath() + '/.env'});
-
+const swaggerUi = require('swagger-ui-express');
+const prodSwaggerDocument = require('./swagger/swagger-prod.json');
+const devSwaggerDocument = require('./swagger/swagger-dev.json');
 const authRoutes = require('./routes/auth.route');
+const folderRoutes = require('./routes/folders.route');
+const jwtMiddleware = require('./middelwares/jwt.middelwares');
+
+
 const port = process.env.PORT || 3000;
 
 app.use(cors({
   origin: '*',
   methods: 'GET, POST'
 }));
-app.use(express.json({limit: '50mb'}));
+app.use(express.json({ limit: '50mb' }));
 app.use('/auth', authRoutes);
+app.use('/folders', jwtMiddleware, folderRoutes);
+app.use('/docs', swaggerUi.serve);
 
-const options = {
-  definition: {
-    openapi: '3.0.0',
-    info: {
-      title: 'REST api docs',
-    },
-  },
-  apis: [con.correctOriginPath() + '/src/routes/*.js']
-};
-const swaggerSpec = swaggerJSDoc(options);
-
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+if (process.env.IS_PRODUCTION === '1') {
+  app.get('/docs', swaggerUi.setup(prodSwaggerDocument));
+} else if (process.env.IS_PRODUCTION === '0') {
+  app.get('/docs', swaggerUi.setup(devSwaggerDocument));
+}
 
 http.listen(port, () => {
   console.log(`[server] listening on port :${ port }`);
