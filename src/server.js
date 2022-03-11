@@ -11,7 +11,6 @@ const authRoutes = require('./routes/auth.route');
 const folderRoutes = require('./routes/folders.route');
 const jwtMiddleware = require('./middelwares/jwt.middelwares');
 
-
 const port = process.env.PORT || 3000;
 
 app.use(cors({

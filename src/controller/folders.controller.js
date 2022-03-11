@@ -223,7 +223,6 @@ const getOtherFolder = async (folderId, userid) => {
       FROM folders
         WHERE "origin_folder_id" = $1
         AND "creator_id" = $2
-      LIMIT 1
     `,
     values: [folderId, userid]
   }
