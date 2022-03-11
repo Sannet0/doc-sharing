@@ -1,13 +1,14 @@
 const jwt = require('jsonwebtoken');
-const { errorsCodes } = require('../consts/server-codes');
 
 module.exports = async (req, res, next) => {
-  let authHeader = req.header('Authorization') || ' ';
+  let authHeader = req.header('Authorization') || '';
 
   try {
     authHeader = authHeader.split(' ');
     const type = authHeader[0];
     const token = authHeader[1];
+
+    console.log("LOOOG", req.header('Authorization'));
 
     if (type !== 'Bearer') {
       return res.status(401).send({

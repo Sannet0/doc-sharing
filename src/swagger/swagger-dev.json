@@ -5,6 +5,7 @@
     "version": "1.0.0"
   },
   "host": "localhost:3001",
+  "basePath": "",
   "schemes": [
     "http"
   ],
@@ -185,7 +186,7 @@
             }
           }
         },
-        "tag": {
+        "authData": {
           "type": "object",
           "properties": {
             "accessToken": {
@@ -204,43 +205,27 @@
       "type": "object",
       "properties": {
         "id": {
+          "example": 1,
           "type": "number"
         },
         "name": {
+          "example": "folder",
           "type": "string"
         },
         "originFolderId": {
+          "example": null,
           "type": "number"
         },
         "folders": {
           "type": "array",
-          "properties": {
-            "id": {
-              "type": "number"
-            },
-            "name": {
-              "type": "string"
-            }
+          "items": {
+            "$ref": "#/definitions/Folder"
           }
         },
         "files": {
           "type": "array",
-          "properties": {
-            "id": {
-              "type": "number"
-            },
-            "path": {
-              "type": "string"
-            },
-            "displayName": {
-              "type": "string"
-            },
-            "type": {
-              "type": "string"
-            },
-            "creatorId": {
-              "type": "number"
-            }
+          "items": {
+            "$ref": "#/definitions/File"
           }
         }
       }
@@ -305,6 +290,44 @@
           "type": "string"
         },
         "originFolderId": {
+          "type": "number"
+        }
+      }
+    },
+    "Folder": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "example": 2,
+          "type": "number"
+        },
+        "name": {
+          "example": "folder2",
+          "type": "string"
+        }
+      }
+    },
+    "File": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "example": 1,
+          "type": "number"
+        },
+        "path": {
+          "example": "/path/to/file/file.txt",
+          "type": "string"
+        },
+        "displayName": {
+          "example": "file",
+          "type": "string"
+        },
+        "type": {
+          "example": "txt",
+          "type": "string"
+        },
+        "creatorId": {
+          "example": 1,
           "type": "number"
         }
       }
