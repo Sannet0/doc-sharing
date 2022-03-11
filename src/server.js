@@ -16,9 +16,12 @@ const port = process.env.PORT || 3000;
 
 app.use(cors({
   origin: '*',
-  methods: 'GET, POST'
+  methods: 'GET, POST, PATCH, DELETE'
 }));
 app.use(express.json({ limit: '50mb' }));
+app.use('', (req, res) => {
+  return res.send('Hello this is doc-sharing api!')
+});
 app.use('/auth', authRoutes);
 app.use('/folders', jwtMiddleware, folderRoutes);
 app.use('/docs', swaggerUi.serve);
