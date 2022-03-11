@@ -11,7 +11,6 @@ module.exports = async (req, res, next) => {
 
     if (type !== 'Bearer') {
       return res.status(401).send({
-        code: errorsCodes.invalidToken,
         message: 'invalid token type'
       });
     }
@@ -21,7 +20,6 @@ module.exports = async (req, res, next) => {
     next();
   } catch (err) {
     return res.status(401).send({
-      code: errorsCodes.invalidToken,
       message: JSON.stringify(err)
     });
   }

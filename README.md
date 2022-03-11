@@ -68,7 +68,7 @@ On this project used [postgreSQL](https://www.postgresql.org/). To use this proj
 # shared-files table
 
     CREATE TABLE shared_files (
-        file_id INT REFERENCES files (id) NOT NULL,
+        file_id INT REFERENCES files (id) ON DELETE CASCADE NOT NULL,
         user_id INT REFERENCES users (id) NOT NULL
     );
   
