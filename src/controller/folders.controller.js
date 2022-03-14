@@ -192,7 +192,7 @@ const getOtherFolder = async (folderId, userid) => {
       SELECT
         id,
         name,
-        origin_folder_id as "originFolderId",
+        COALESCE(origin_folder_id, 0) as "originFolderId",
         creator_id as "creatorId"
       FROM folders
         WHERE "id" = $1

@@ -84,7 +84,12 @@
               "$ref": "#/definitions/FolderInfo"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
       },
       "delete": {
         "tags": ["folder"],
@@ -102,7 +107,12 @@
           "200": {
             "description": "OK"
           }
-        }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
       }
     },
     "/folders": {
@@ -127,7 +137,12 @@
               "$ref": "#/definitions/CreatedFolder"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
       },
       "patch": {
         "tags": ["folder"],
@@ -147,7 +162,12 @@
           "200": {
             "description": "OK"
           }
-        }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
       }
     }
   },

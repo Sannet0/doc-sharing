@@ -1,6 +1,5 @@
 const { signin, signup } = require('../controller/auth.controller');
-const { errorsCodes, successCodes } = require('../consts/server-codes');
-const jwt = require('jsonwebtoken');
+const { errorsCodes } = require('../consts/server-codes');
 jest.mock('password-hash', () => ({
   generate: (password) => {
     return 'hash';
@@ -68,11 +67,13 @@ jest.mock('../modules/database.module', () => ({
   }
 }));
 jest.mock('fs', () => ({
-  writeFileSync: () => {
+  promises: {
+    writeFile: () => {
 
-  },
-  rmSync:  () => {
+    },
+    rm:  () => {
 
+    }
   }
 }));
 jest.mock('sharp', () => (

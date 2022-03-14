@@ -1,33 +1,27 @@
 const db = require('../modules/database.module');
 const passwordHash = require('password-hash');
 const jwt = require('jsonwebtoken');
-const fs = require('fs');
+const fs = require('fs').promises;
 const con = require('../consts/base-const');
 const sharp = require('sharp');
 const { errorsCodes } = require('../consts/server-codes');
 
 const extractTypeBase64 = (image) => {
-  if (image) {
-    const data = image.split(',');
-    const info = data[0].split(/[^a-zа-яё0-9]/gi);
-
-    return {
-      base64: data[1],
-      type: info[2]
-    }
-  }
-
-  return {
+  const data = {
     base64: '',
     type: ''
   }
+  const [ info, base64 ] = image?.split(',') || [];
+  data.base64 = base64 || '';
+  data.type = info?.split(/[^a-zа-яё0-9]/gi)[2] || '';
+  return data;
 }
 
 const signup = async (req, res) => {
   let { email, password, fullName, displayName, avatarImage } = req.body;
   let miniatureAvatarImage = '';
   let originalAvatarImage = '';
-  avatarImage = extractTypeBase64(avatarImage)
+  avatarImage = extractTypeBase64(avatarImage);
 
   try {
     const imageBase64 = avatarImage?.base64;
@@ -35,23 +29,13 @@ const signup = async (req, res) => {
     if (imageBase64) {
       const filePath = con.correctOriginPath() + '/src/files/temporary/avatar-' + email + '.' + avatarImage.type;
 
-      await fs.writeFile(filePath, imageBase64, { encoding: 'base64' }, (err) => {
-        return res.status(500).send({
-          code: errorsCodes.fileSystemError,
-          message: JSON.stringify(err)
-        });
-      });
+      await fs.writeFile(filePath, imageBase64, { encoding: 'base64' });
       const miniatureBuffer = await sharp(filePath).resize(48).toBuffer();
       const base64orig = 'data:image/' + avatarImage.type + ';base64,';
 
       originalAvatarImage = base64orig + imageBase64;
       miniatureAvatarImage = base64orig + miniatureBuffer.toString('base64');
-      await fs.rm(filePath, (err) => {
-        return res.status(500).send({
-          code: errorsCodes.fileSystemError,
-          message: JSON.stringify(err)
-        });
-      });
+      await fs.rm(filePath);
     }
     const hash = passwordHash.generate(password);
 
@@ -90,7 +74,7 @@ const signup = async (req, res) => {
 
     return res.status(500).send({
       code: errorsCodes.internalError,
-      message: JSON.stringify(err)
+      message: err.message || JSON.stringify(err)
     });
   }
 }
