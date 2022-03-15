@@ -1,5 +1,3 @@
-// const fs = require('fs');
-// const db = require('../modules/database.module');
 const {
   createFolder,
   deleteFolder,
@@ -115,8 +113,6 @@ jest.mock('../modules/database.module', () => ({
         return { rows: [] }
       }
     }
-
-    console.log("QUERY", replacedQuery, 'VALUES', stringValues);
   }
 }));
 

@@ -17,6 +17,10 @@ const extractTypeBase64 = (image) => {
   return data;
 }
 
+const generateTokenPayload = (userId, isRefreshToken) => {
+  return { id: userId, isRefreshToken }
+}
+
 const signup = async (req, res) => {
   let { email, password, fullName, displayName, avatarImage } = req.body;
   let miniatureAvatarImage = '';
@@ -25,18 +29,6 @@ const signup = async (req, res) => {
 
   try {
     const imageBase64 = avatarImage?.base64;
-
-    if (imageBase64) {
-      const filePath = con.correctOriginPath() + '/src/files/temporary/avatar-' + email + '.' + avatarImage.type;
-
-      await fs.writeFile(filePath, imageBase64, { encoding: 'base64' });
-      const miniatureBuffer = await sharp(filePath).resize(48).toBuffer();
-      const base64orig = 'data:image/' + avatarImage.type + ';base64,';
-
-      originalAvatarImage = base64orig + imageBase64;
-      miniatureAvatarImage = base64orig + miniatureBuffer.toString('base64');
-      await fs.rm(filePath);
-    }
     const hash = passwordHash.generate(password);
 
     const createUsersQuery = {
@@ -48,20 +40,32 @@ const signup = async (req, res) => {
       values: [email, hash, fullName, displayName]
     }
     const createUsersReturnValues = await db.query(createUsersQuery);
-    const userId = createUsersReturnValues.rows[0].id;
+    const userId =  createUsersReturnValues.rows[0].id;
 
-    if (imageBase64) {
+    if(imageBase64) {
+      const filePath = con.correctOriginPath() + '/src/files/temporary/avatar-' + email + '.' + avatarImage.type;
+
+      await fs.writeFile(filePath, imageBase64, { encoding: 'base64' });
+      const miniatureBuffer = await sharp(filePath).resize(48).toBuffer();
+      const base64orig = 'data:image/' + avatarImage.type + ';base64,';
+
+      originalAvatarImage = base64orig + imageBase64;
+      miniatureAvatarImage = base64orig + miniatureBuffer.toString('base64');
+      await fs.rm(filePath);
+
       const saveUserAvatarImage = {
         text: `
-        INSERT INTO user_profile_photo ("original", "miniature", "user_id")
-        VALUES ($1, $2, $3)
-      `,
+          INSERT INTO user_profile_photo ("original", "miniature", "user_id")
+          VALUES ($1, $2, $3)
+        `,
         values: [originalAvatarImage, miniatureAvatarImage, userId]
       }
       await db.query(saveUserAvatarImage);
     }
 
-    return res.status(201).send('');
+    return res.status(201).send({
+      message: 'registration success'
+    });
   } catch (err) {
     if (err.file === 'nbtinsert.c' && err.code === '23505') {
       return res.status(500).send({
@@ -69,6 +73,15 @@ const signup = async (req, res) => {
         message: JSON.stringify(err)
       });
     }
+
+    const deleteUserOnError = {
+      text: `
+        DELETE FROM users
+        WHERE "email" = $1
+      `,
+      values: [email]
+    }
+    await db.query(deleteUserOnError);
 
     console.error('auth.controller "signup" function error: ', err);
 
@@ -120,8 +133,8 @@ const signin = async (req, res) => {
     const matchedImages = await db.query(imageQuery);
     const actualImage = matchedImages.rows[0];
 
-    const accessTokenPayload = { id: accurateUser.id, isRefToken: false };
-    const refreshTokenPayload = { id: accurateUser.id, isRefToken: true };
+    const accessTokenPayload = generateTokenPayload(accurateUser.id, false);
+    const refreshTokenPayload = generateTokenPayload(accurateUser.id, true);
 
     return res.status(200).send({
       userData: {
@@ -163,8 +176,8 @@ const authWithRefToken = (req, res) => {
 
     const userInfo = jwt.verify(token, process.env.JWT_SECRET);
 
-    const accessTokenPayload = { id: userInfo.id, isRefToken: false };
-    const refreshTokenPayload = { id: userInfo.id, isRefToken: true };
+    const accessTokenPayload = generateTokenPayload(userInfo.id, false);
+    const refreshTokenPayload = generateTokenPayload(userInfo.id, true);
 
     return res.status(200).send({
       authData: {
