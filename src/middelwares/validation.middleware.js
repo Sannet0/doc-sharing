@@ -1,4 +1,5 @@
-const { errorsCodes } = require('../consts/server-codes')
+const { errorsCodes } = require('../consts/server-codes');
+
 
 module.exports = (validator, isQuery = false) => {
   return async (req, res, next) => {
@@ -13,7 +14,7 @@ module.exports = (validator, isQuery = false) => {
     } catch (err) {
       return res.status(500).send({
         code: errorsCodes.validatorError,
-        error: JSON.stringify(err)
+        error: JSON.stringify(err.message || '')
       });
     }
   }

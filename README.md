@@ -1,3 +1,5 @@
+#Doc-sharing#1.2.0
+
 # Installation
 
 ```bash
@@ -36,11 +38,11 @@ On this project used [postgreSQL](https://www.postgresql.org/). To use this proj
 # users table
 
     CREATE TABLE users (
-      id SERIAL PRIMARY KEY,
-      email VARCHAR(100) UNIQUE NOT NULL,
-      password VARCHAR(100) NOT NULL,
-      fullname VARCHAR(100) NOT NULL,
-      displayname VARCHAR(100)
+        id SERIAL PRIMARY KEY,
+        email VARCHAR(100) UNIQUE NOT NULL,
+        password VARCHAR(100) NOT NULL,
+        fullname VARCHAR(100) NOT NULL,
+        displayname VARCHAR(100)
     );
       
 # user_profile_photo  table
@@ -55,31 +57,35 @@ On this project used [postgreSQL](https://www.postgresql.org/). To use this proj
 # files table
 
     CREATE TABLE files (
-      id SERIAL PRIMARY KEY,
-      path VARCHAR(100) NOT NULL,
-      displayname VARCHAR(100) NOT NULL,
-      type VARCHAR(100) NOT NULL,
-      creator_user_id INT REFERENCES users (id) NOT NULL
+        id SERIAL PRIMARY KEY,
+        path VARCHAR(100) NOT NULL,
+        displayname VARCHAR(100) NOT NULL,
+        type VARCHAR(100) NOT NULL,
+        folder_id INT REFERENCES folders (id) ON DELETE CASCADE,
+        creator_id INT REFERENCES users (id) NOT NULL
     );
   
 # shared-files table
 
     CREATE TABLE shared_files (
-      file_id INT REFERENCES files (id) NOT NULL,
-      user_id INT REFERENCES users (id) NOT NULL
+        file_id INT REFERENCES files (id) ON DELETE CASCADE NOT NULL,
+        user_id INT REFERENCES users (id) NOT NULL
+    );
+  
+# folders table
+    
+    CREATE TABLE folders (
+        id SERIAL PRIMARY KEY,
+        name varchar(100) NOT NULL,
+        origin_folder_id INT REFERENCES folders (id) ON DELETE CASCADE,
+        creator_id INT REFERENCES users (id) NOT NULL
     );
 ```
 
 # Server codes
-
-## Errors codes
 
 * INTERNAL_ERROR
 * USER_EXIST
 * VALIDATOR_ERROR
 * INVALID_EMAIL_OR_PASSWORD
 * INVALID_TOKEN
-
-## Success Codes
-
-* SUCCESS_REGISTRATION

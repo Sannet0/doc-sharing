@@ -1,0 +1,323 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Doc-sharing API",
+    "version": "1.2.0"
+  },
+  "host": "exceedteam.my",
+  "basePath": "/doc-sharing-api",
+  "schemes": [
+    "http"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/auth/signin?email={email}&password={password}": {
+      "get": {
+        "tags": ["authorisation"],
+        "summary": "login",
+        "description": "user login endpoint",
+        "parameters": [
+          {
+            "name": "email",
+            "in": "query",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "password",
+            "in": "query",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "signin response",
+            "schema": {
+              "$ref": "#/definitions/Singin"
+            }
+          }
+        }
+      }
+    },
+    "/auth/signup": {
+      "post": {
+        "tags": ["authorisation"],
+        "summary": "registration",
+        "description": "user registration endpoint",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/NewUser"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/folders?folderId={folderId}": {
+      "get": {
+        "tags": ["folder"],
+        "summary": "get info NEED JWT",
+        "description": "get information about folder: child folders and child files",
+        "parameters": [
+          {
+            "name": "folderId",
+            "in": "query",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/FolderInfo"
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["folder"],
+        "summary": "delete folder NEED JWT",
+        "description": "delete folder and ALL child folders and files in this folder, also deletes files on the server",
+        "parameters": [
+          {
+            "name": "folderId",
+            "in": "query",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/folders": {
+      "post": {
+        "tags": ["folder"],
+        "summary": "create new folder NEED JWT",
+        "description": "create a new folder in the specified folder",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/CreateFolder"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/CreatedFolder"
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": ["folder"],
+        "summary": "update folder  NEED JWT",
+        "description": "update folder name",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/EditFolder"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    }
+  },
+  "securityDefinitions": {
+    "Bearer": {
+      "type": "apiKey",
+      "name": "Authorization",
+      "in": "header"
+    }
+  },
+  "definitions": {
+    "Singin": {
+      "type": "object",
+      "properties": {
+        "userData": {
+          "properties": {
+            "displayName": {
+              "example": "John",
+              "type": "string"
+            },
+            "fullName": {
+              "example": "John Doe",
+              "type": "string"
+            },
+            "email": {
+              "example": "example@mail.com",
+              "type": "string"
+            },
+            "miniatureAvatar": {
+              "example": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==",
+              "type": "string"
+            },
+            "originalAvatar": {
+              "example": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==",
+              "type": "string"
+            }
+          }
+        },
+        "tag": {
+          "type": "object",
+          "properties": {
+            "accessToken": {
+              "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTA2LCJpc1JlZlRva2VuIjpmYWxzZSwiaWF0IjoxNjQ2OTg1NTMzLCJleHAiOjE2NDY5ODczMzN9.7jRdDHAQSO36b-iTa0j25R82tZQdysI0iO8LenI9YDo",
+              "type": "string"
+            },
+            "refreshToken": {
+              "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTA2LCJpc1JlZlRva2VuIjp0cnVlLCJpYXQiOjE2NDY5ODU1MzMsImV4cCI6MTY0NzA3MTkzM30.iQyzyOvU6TpW9rj4Ss3YFyG0_npS56W5-c2xKFp5NAY",
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "FolderInfo": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "number"
+        },
+        "name": {
+          "type": "string"
+        },
+        "originFolderId": {
+          "type": "number"
+        },
+        "folders": {
+          "type": "array",
+          "properties": {
+            "id": {
+              "type": "number"
+            },
+            "name": {
+              "type": "string"
+            }
+          }
+        },
+        "files": {
+          "type": "array",
+          "properties": {
+            "id": {
+              "type": "number"
+            },
+            "path": {
+              "type": "string"
+            },
+            "displayName": {
+              "type": "string"
+            },
+            "type": {
+              "type": "string"
+            },
+            "creatorId": {
+              "type": "number"
+            }
+          }
+        }
+      }
+    },
+    "NewUser": {
+      "type": "object",
+      "required": [
+        "fullName", "email", "password"
+      ],
+      "properties": {
+        "displayName": {
+          "example": "John",
+          "type": "string"
+        },
+        "fullName": {
+          "example": "John Doe",
+          "type": "string"
+        },
+        "email": {
+          "example": "example@mail.com",
+          "type": "string"
+        },
+        "password": {
+          "example": "pasSw0rd",
+          "type": "string"
+        },
+        "avatarImage": {
+          "example": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==",
+          "type": "string"
+        }
+      }
+    },
+    "EditFolder": {
+      "type": "object",
+      "properties": {
+        "folderId": {
+          "type": "integer"
+        },
+        "newName": {
+          "type": "string"
+        }
+      }
+    },
+    "CreateFolder": {
+      "type": "object",
+      "properties": {
+        "folderName": {
+          "type": "string"
+        },
+        "originFolderId": {
+          "type": "integer"
+        }
+      }
+    },
+    "CreatedFolder": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "number"
+        },
+        "name": {
+          "type": "string"
+        },
+        "originFolderId": {
+          "type": "number"
+        }
+      }
+    }
+  },
+  "tags": [{
+    "name": "authorisation"
+  },
+    {
+      "name": "folder"
+    }],
+  "consumes": [
+    "application/json"
+  ]
+}

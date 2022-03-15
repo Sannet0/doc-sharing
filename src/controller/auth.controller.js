@@ -1,48 +1,34 @@
 const db = require('../modules/database.module');
 const passwordHash = require('password-hash');
 const jwt = require('jsonwebtoken');
-const fs = require('fs');
+const fs = require('fs').promises;
 const con = require('../consts/base-const');
 const sharp = require('sharp');
 const { errorsCodes } = require('../consts/server-codes');
 
 const extractTypeBase64 = (image) => {
-  if(image) {
-    const data = image.split(',');
-    const info = data[0].split(/[^a-zа-яё0-9]/gi);
-
-    return {
-      base64: data[1],
-      type: info[2]
-    }
-  }
-
-  return {
+  const data = {
     base64: '',
     type: ''
   }
+  const [ info, base64 ] = image?.split(',') || [];
+  data.base64 = base64 || '';
+  data.type = info?.split(/[^a-zа-яё0-9]/gi)[2] || '';
+  return data;
+}
+
+const generateTokenPayload = (userId, isRefreshToken) => {
+  return { id: userId, isRefreshToken }
 }
 
 const signup = async (req, res) => {
   let { email, password, fullName, displayName, avatarImage } = req.body;
   let miniatureAvatarImage = '';
   let originalAvatarImage = '';
-  avatarImage = extractTypeBase64(avatarImage)
+  avatarImage = extractTypeBase64(avatarImage);
 
   try {
     const imageBase64 = avatarImage?.base64;
-
-    if(imageBase64) {
-      const filePath = con.correctOriginPath() + '/src/files/temporary/avatar-' + email + '.' + avatarImage.type;
-
-      fs.writeFileSync(filePath, imageBase64, { encoding: 'base64' });
-      const miniatureBuffer = await sharp(filePath).resize(48).toBuffer();
-      const base64orig = 'data:image/' + avatarImage.type + ';base64,';
-
-      originalAvatarImage = base64orig + imageBase64;
-      miniatureAvatarImage = base64orig + miniatureBuffer.toString('base64');
-      fs.rmSync(filePath);
-    }
     const hash = passwordHash.generate(password);
 
     const createUsersQuery = {
@@ -57,11 +43,21 @@ const signup = async (req, res) => {
     const userId =  createUsersReturnValues.rows[0].id;
 
     if(imageBase64) {
+      const filePath = con.correctOriginPath() + '/src/files/temporary/avatar-' + email + '.' + avatarImage.type;
+
+      await fs.writeFile(filePath, imageBase64, { encoding: 'base64' });
+      const miniatureBuffer = await sharp(filePath).resize(48).toBuffer();
+      const base64orig = 'data:image/' + avatarImage.type + ';base64,';
+
+      originalAvatarImage = base64orig + imageBase64;
+      miniatureAvatarImage = base64orig + miniatureBuffer.toString('base64');
+      await fs.rm(filePath);
+
       const saveUserAvatarImage = {
         text: `
-        INSERT INTO user_profile_photo ("original", "miniature", "user_id")
-        VALUES ($1, $2, $3)
-      `,
+          INSERT INTO user_profile_photo ("original", "miniature", "user_id")
+          VALUES ($1, $2, $3)
+        `,
         values: [originalAvatarImage, miniatureAvatarImage, userId]
       }
       await db.query(saveUserAvatarImage);
@@ -71,18 +67,27 @@ const signup = async (req, res) => {
       message: 'registration success'
     });
   } catch (err) {
-    if(err.file === 'nbtinsert.c') {
-      if(err.code === '23505') {
-        return res.status(500).send({
-          code: errorsCodes.userExist,
-          message: JSON.stringify(err)
-        });
-      }
+    if (err.file === 'nbtinsert.c' && err.code === '23505') {
+      return res.status(500).send({
+        code: errorsCodes.userExist,
+        message: JSON.stringify(err)
+      });
     }
+
+    const deleteUserOnError = {
+      text: `
+        DELETE FROM users
+        WHERE "email" = $1
+      `,
+      values: [email]
+    }
+    await db.query(deleteUserOnError);
+
+    console.error('auth.controller "signup" function error: ', err);
 
     return res.status(500).send({
       code: errorsCodes.internalError,
-      message: JSON.stringify(err)
+      message: err.message || JSON.stringify(err)
     });
   }
 }
@@ -110,14 +115,12 @@ const signin = async (req, res) => {
 
     const isPasswordCorrect = passwordHash.verify(password, accurateUser.password);
 
-    if(!isPasswordCorrect) {
+    if (!isPasswordCorrect) {
       return res.status(500).send({
         code: errorsCodes.invalidUser,
         message: 'invalid email or password'
       });
     }
-
-    const payload = { id: accurateUser.id, email: accurateUser.email };
 
     const imageQuery = {
       text: `
@@ -130,6 +133,9 @@ const signin = async (req, res) => {
     const matchedImages = await db.query(imageQuery);
     const actualImage = matchedImages.rows[0];
 
+    const accessTokenPayload = generateTokenPayload(accurateUser.id, false);
+    const refreshTokenPayload = generateTokenPayload(accurateUser.id, true);
+
     return res.status(200).send({
       userData: {
         displayName: accurateUser.displayname || '',
@@ -139,11 +145,13 @@ const signin = async (req, res) => {
         originalAvatar: Buffer.from(actualImage?.miniature  || '').toString('base64')
       },
       authData: {
-        accessToken: jwt.sign(payload, '' + process.env.SECRET, { expiresIn: '30m' }),
-        refreshToken: jwt.sign(payload, '' + process.env.SECRET, { expiresIn: '24h' })
+        accessToken: jwt.sign(accessTokenPayload, '' + process.env.JWT_SECRET, { expiresIn: '' + process.env.ACCESS_TOKEN_EXPIRES_IN }),
+        refreshToken: jwt.sign(refreshTokenPayload, '' + process.env.JWT_SECRET, { expiresIn: '' + process.env.REFRESH_TOKEN_EXPIRES_IN })
       }
     });
   } catch (err) {
+    console.error('auth.controller "signin" function error: ', err);
+
     return res.status(500).send({
       code: errorsCodes.internalError,
       message: JSON.stringify(err)
@@ -151,7 +159,42 @@ const signin = async (req, res) => {
   }
 }
 
+const authWithRefToken = (req, res) => {
+  let authHeader = req.header('Authorization') || ' ';
+
+  try {
+    authHeader = authHeader.split(' ');
+    const type = authHeader[0];
+    const token = authHeader[1];
+
+    if (type !== 'Bearer') {
+      return res.status(403).send({
+        code: errorsCodes.invalidToken,
+        message: 'invalid token type'
+      });
+    }
+
+    const userInfo = jwt.verify(token, process.env.JWT_SECRET);
+
+    const accessTokenPayload = generateTokenPayload(userInfo.id, false);
+    const refreshTokenPayload = generateTokenPayload(userInfo.id, true);
+
+    return res.status(200).send({
+      authData: {
+        accessToken: jwt.sign(accessTokenPayload, '' + process.env.JWT_SECRET, { expiresIn: '' + process.env.ACCESS_TOKEN_EXPIRES_IN }),
+        refreshToken: jwt.sign(refreshTokenPayload, '' + process.env.JWT_SECRET, { expiresIn: '' + process.env.REFRESH_TOKEN_EXPIRES_IN })
+      }
+    });
+  } catch (err) {
+    return res.status(403).send({
+      code: errorsCodes.invalidToken,
+      message: JSON.stringify(err)
+    });
+  }
+}
+
 module.exports = {
   signup,
-  signin
+  signin,
+  authWithRefToken
 }
