@@ -42,7 +42,9 @@ On this project used [postgreSQL](https://www.postgresql.org/). To use this proj
         email VARCHAR(100) UNIQUE NOT NULL,
         password VARCHAR(100) NOT NULL,
         fullname VARCHAR(100) NOT NULL,
-        displayname VARCHAR(100)
+        displayname VARCHAR(100),
+        access_token VARCHAR(140),
+        refresh_token VARCHAR(140)
     );
       
 # user_profile_photo  table

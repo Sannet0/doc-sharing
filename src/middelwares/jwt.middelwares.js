@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const db = require('../modules/database.module');
 
 module.exports = async (req, res, next) => {
   let authHeader = req.header('Authorization') || '';
@@ -9,12 +10,33 @@ module.exports = async (req, res, next) => {
     const token = authHeader[1];
 
     if (type !== 'Bearer') {
-      return res.status(401).send({
-        message: 'invalid token type'
-      });
+      throw 'invalid token type';
     }
 
-    req.user = jwt.verify(token, process.env.JWT_SECRET);
+    const { id, isRefreshToken } = jwt.verify(token, process.env.JWT_SECRET);
+
+    if (isRefreshToken) {
+      throw 'incorrect token';
+    }
+
+    const userTokensQuery = {
+      text: `
+        SELECT 
+          access_token as "accessToken"
+        FROM users
+        WHERE id = $1
+        LIMIT 1
+      `,
+      values: [id],
+    }
+    const matchedUsers = await db.query(userTokensQuery);
+    const { accessToken } = matchedUsers.rows[0];
+
+    if (accessToken !== token) {
+      throw 'incorrect token';
+    }
+
+    req.user = { id };
 
     next();
   } catch (err) {
