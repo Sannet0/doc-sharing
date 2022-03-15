@@ -68,12 +68,8 @@ jest.mock('../modules/database.module', () => ({
 }));
 jest.mock('fs', () => ({
   promises: {
-    writeFile: () => {
-
-    },
-    rm:  () => {
-
-    }
+    writeFile: () => {},
+    rm:  () => {}
   }
 }));
 jest.mock('sharp', () => (
@@ -223,9 +219,7 @@ describe('registration', () => {
     await signup(req, res);
 
     expect(res.statusCode).toEqual(201);
-    expect(res.text).toEqual({
-      message: 'registration success'
-    });
+    expect(res.text).toEqual('');
   });
   it('should return "registration success"', async () => {
     const req = {
@@ -244,8 +238,6 @@ describe('registration', () => {
     await signup(req, res);
 
     expect(res.statusCode).toEqual(201);
-    expect(res.text).toEqual({
-      message: 'registration success'
-    });
+    expect(res.text).toEqual('');
   });
 });

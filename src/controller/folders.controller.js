@@ -1,6 +1,22 @@
-const fs = require('fs');
+const fs = require('fs').promises;
 const db = require('../modules/database.module');
 const { errorsCodes } = require('../consts/server-codes');
+
+const isFolderExist = async (userId, folderId) => {
+  const checkFolderUniqueQuery = {
+    text: `
+        SELECT * FROM folders
+        WHERE "creator_id" = $1
+        AND "id" = $2
+        LIMIT 1
+      `,
+    values: [userId, folderId]
+  }
+  const checkFolderUniqueReturnValues =  await db.query(checkFolderUniqueQuery);
+  const actualMatchedFolder = checkFolderUniqueReturnValues.rows[0];
+
+  return !!actualMatchedFolder;
+}
 
 const createFolder = async (req, res) => {
   let { folderName, originFolderId } = req.body;
@@ -8,7 +24,8 @@ const createFolder = async (req, res) => {
 
   try {
     let existFoldersQuery = {
-      text: ''
+      text: '',
+      values: []
     };
 
     if (originFolderId === 0) {
@@ -25,18 +42,9 @@ const createFolder = async (req, res) => {
         values: [id, folderName]
       }
     } else {
-      const checkFolderUniqueQuery = {
-        text: `
-        SELECT * FROM folders
-        WHERE "creator_id" = $1
-        AND "id" = $2
-        LIMIT 1
-      `,
-        values: [id, originFolderId]
-      }
-      const checkFolderUniqueReturnValues =  await db.query(checkFolderUniqueQuery);
+      const isFolderAlreadyExist =  await isFolderExist(id, originFolderId);
 
-      if (!checkFolderUniqueReturnValues.rows[0]) {
+      if (!isFolderAlreadyExist) {
         return res.status(500).send({
           code: errorsCodes.invalidFolder
         });
@@ -67,7 +75,7 @@ const createFolder = async (req, res) => {
       text: `
           INSERT INTO folders ("name", "origin_folder_id", "creator_id")
           VALUES ($1, $2, $3)
-          RETURNING "id", "name", "origin_folder_id"
+          RETURNING "id", "name", "origin_folder_id" as "originFolderId"
       `,
       values: [folderName, originFolderId, id]
     }
@@ -75,16 +83,14 @@ const createFolder = async (req, res) => {
     const actualFolder = createFolderReturnValues.rows[0];
 
     return res.status(201).send({
-      id: actualFolder.id,
-      name: actualFolder.name,
-      originFolderId: actualFolder.origin_folder_id
+      ...actualFolder
     });
   } catch (err) {
     console.error('folders.controller "createFolder" function error: ', err);
 
     return res.status(500).send({
       code: errorsCodes.internalError,
-      message: JSON.stringify(err)
+      message: err.message || JSON.stringify(err)
     });
   }
 }
@@ -94,19 +100,9 @@ const deleteFolder = async (req, res) => {
   const  { id } = req.user;
 
   try {
-    const existFoldersQuery = {
-      text: `
-          SELECT * FROM folders
-            WHERE "id" = $1
-            AND "creator_id" = $2
-          LIMIT 1
-      `,
-      values: [folderId, id]
-    }
-    const existFoldersReturnValues = await db.query(existFoldersQuery);
-    const actualExistFolder = existFoldersReturnValues.rows[0];
+    const isFolderAlreadyExist =  await isFolderExist(id, folderId);
 
-    if (!actualExistFolder) {
+    if (!isFolderAlreadyExist) {
       return res.status(500).send({
         code: errorsCodes.invalidFolder
       });
@@ -131,14 +127,11 @@ const deleteFolder = async (req, res) => {
     const filesPathsReturnValues = await db.query(filesPathsQuery);
     const filesPaths = filesPathsReturnValues.rows;
 
+    const deleteFoldersPromises =[];
     for (let i in filesPaths) {
-      await fs.rm(filesPaths[i].path, (err) => {
-        return res.status(500).send({
-          code: errorsCodes.fileSystemError,
-          message: JSON.stringify(err)
-        });
-      });
+      deleteFoldersPromises.push(fs.unlink(filesPaths[i].path));
     }
+    await Promise.all(deleteFoldersPromises);
 
     const deleteFoldersQuery = {
       text: `
@@ -149,7 +142,9 @@ const deleteFolder = async (req, res) => {
     };
     await db.query(deleteFoldersQuery);
 
-    return res.status(200).send('');
+    return res.status(200).send({
+      message: 'success delete folder'
+    });
   } catch (err) {
     console.error('folders.controller "deleteFolder" function error: ', err);
 
@@ -186,7 +181,7 @@ const getFolderInfo = async (req, res) => {
   }
 }
 
-const getOtherFolder = async (folderId, userid) => {
+const getOtherFolder = async (folderId, userId) => {
   const existFoldersQuery = {
     text: `
       SELECT
@@ -199,7 +194,7 @@ const getOtherFolder = async (folderId, userid) => {
         AND "creator_id" = $2
       LIMIT 1
     `,
-    values: [folderId, userid]
+    values: [folderId, userId]
   }
   const existFoldersReturnValues = await db.query(existFoldersQuery);
   const actualExistFolder = existFoldersReturnValues.rows[0];
@@ -224,7 +219,7 @@ const getOtherFolder = async (folderId, userid) => {
         WHERE "origin_folder_id" = $1
         AND "creator_id" = $2
     `,
-    values: [folderId, userid]
+    values: [folderId, userId]
   }
   const childFoldersReturnValues = await db.query(childFoldersQuery);
   const childFoldersInfo = childFoldersReturnValues.rows;
@@ -240,7 +235,7 @@ const getOtherFolder = async (folderId, userid) => {
       WHERE "folder_id" = $1
       AND "creator_id" = $2
     `,
-    values: [folderId, userid]
+    values: [folderId, userId]
   }
   const getChildFilesReturnValues = await db.query(getChildFilesQuery);
   const childFilesInfo = getChildFilesReturnValues.rows;
@@ -255,7 +250,7 @@ const getOtherFolder = async (folderId, userid) => {
   }
 }
 
-const getRootFolder = async (userid) => {
+const getRootFolder = async (userId) => {
   const getChildFoldersQuery = {
     text: `
       SELECT 
@@ -267,7 +262,7 @@ const getRootFolder = async (userid) => {
       WHERE "origin_folder_id" IS NULL
       AND "creator_id" = $1
     `,
-    values: [userid]
+    values: [userId]
   }
   const getChildFoldersReturnValues = await db.query(getChildFoldersQuery);
   const childFoldersInfo = getChildFoldersReturnValues.rows;
@@ -283,7 +278,7 @@ const getRootFolder = async (userid) => {
       WHERE "folder_id" IS NULL
       AND "creator_id" = $1
     `,
-    values: [userid]
+    values: [userId]
   }
   const getChildFilesReturnValues = await db.query(getChildFilesQuery);
   const childFilesInfo = getChildFilesReturnValues.rows;
@@ -294,7 +289,7 @@ const getRootFolder = async (userid) => {
         id: 0,
         name: 'root',
         originFolderId: null,
-        creatorId: userid,
+        creatorId: userId,
         folders: childFoldersInfo,
         files: childFilesInfo
     }
@@ -306,19 +301,9 @@ const editFolderName = async (req, res) => {
   const  { id } = req.user;
 
   try {
-    const existFoldersQuery = {
-      text: `
-          SELECT * FROM folders
-            WHERE "id" = $1
-            AND "creator_id" = $2
-          LIMIT 1
-      `,
-      values: [folderId, id]
-    }
-    const existFoldersReturnValues = await db.query(existFoldersQuery);
-    const actualExistFolder = existFoldersReturnValues.rows[0];
+    const isFolderAlreadyExist =  await isFolderExist(id, folderId);
 
-    if (!actualExistFolder) {
+    if (!isFolderAlreadyExist) {
       return res.status(500).send({
         code: errorsCodes.invalidFolder
       });
@@ -335,7 +320,9 @@ const editFolderName = async (req, res) => {
     }
     await db.query(updateFolderQuery);
 
-    return res.status(200).send('');
+    return res.status(200).send({
+      message: 'success folder name edit'
+    });
   } catch (err) {
     console.log('folders.controller "editFolderName" function error: ', err);
 
