@@ -180,14 +180,13 @@ const signin = async (req, res) => {
 
 const authWithRefToken = async (req, res) => {
   let refreshToken = req.body.refreshToken || ' ';
-  console.log('1111', refreshToken);
 
   try {
-    console.log('1')
-    refreshToken = refreshToken.split(' ');
+    const modifiedRefreshToken = refreshToken.split(' ');
+    console.log('1');
+    const type = modifiedRefreshToken[0];
     console.log('2');
-    const type = refreshToken[0];
-    const token = refreshToken[1];
+    const token = modifiedRefreshToken[1];
 
     if (type !== 'Bearer') {
       throw { message: 'invalid token type' };
