@@ -186,9 +186,10 @@ const authWithRefToken = async (req, res) => {
       return res.status(400).send({ message: 'Missing token' });
     }
     const { id, isRefreshToken } = jwt.verify(token, process.env.JWT_SECRET);
+    console.log("isRefreshToken", isRefreshToken);
 
     if (!isRefreshToken) {
-      throw { message: 'incorrect token' };
+      throw { message: 'not a refresh token' };
     }
 
     const userTokensQuery = {
@@ -204,6 +205,8 @@ const authWithRefToken = async (req, res) => {
     const matchedUsers = await db.query(userTokensQuery);
     const { refreshToken } = matchedUsers.rows[0];
 
+    console.log('REF TOKEN', refreshToken, 'TOKEN', token);
+
     if (refreshToken !== token) {
       throw { message: 'incorrect token' };
     }
@@ -214,7 +217,6 @@ const authWithRefToken = async (req, res) => {
       authData
     });
   } catch (err) {
-    console.log("LOOOG", err);
 
     return res.status(403).send({
       code: errorsCodes.invalidToken,
