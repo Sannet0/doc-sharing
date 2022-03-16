@@ -179,7 +179,7 @@ const signin = async (req, res) => {
 }
 
 const authWithRefToken = async (req, res) => {
-  let token = req.body.refreshToken;
+  const token = req.body.refreshToken;
 
   try {
     if (!token) {
@@ -214,6 +214,8 @@ const authWithRefToken = async (req, res) => {
       authData
     });
   } catch (err) {
+    console.log("LOOOG", err);
+
     return res.status(403).send({
       code: errorsCodes.invalidToken,
       message: err.message || JSON.stringify(err)
