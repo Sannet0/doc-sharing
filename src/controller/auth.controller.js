@@ -183,20 +183,22 @@ const authWithRefToken = async (req, res) => {
   console.log('1111', refreshToken);
 
   try {
+    console.log('1')
     refreshToken = refreshToken.split(' ');
+    console.log('2');
     const type = refreshToken[0];
     const token = refreshToken[1];
 
     if (type !== 'Bearer') {
       throw { message: 'invalid token type' };
     }
-    console.log('2')
+
     const { id, isRefreshToken } = jwt.verify(token, process.env.JWT_SECRET);
 
     if (!isRefreshToken) {
       throw { message: 'incorrect token' };
     }
-    console.log('3')
+
     const userTokensQuery = {
       text: `
         SELECT 
@@ -209,15 +211,12 @@ const authWithRefToken = async (req, res) => {
     }
     const matchedUsers = await db.query(userTokensQuery);
     const { refreshToken } = matchedUsers.rows[0];
-    console.log('4')
 
     if (refreshToken !== token) {
       throw { message: 'incorrect token' };
     }
-    console.log('5')
 
     const authData = await generateUserTokens(id);
-    console.log('6')
 
     return res.status(200).send({
       authData
