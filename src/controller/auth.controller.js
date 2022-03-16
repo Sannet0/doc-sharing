@@ -206,8 +206,11 @@ const authWithRefToken = async (req, res) => {
     const { refreshToken } = matchedUsers.rows[0];
 
     console.log('REF TOKEN', refreshToken, 'TOKEN', token);
+    console.log("LOOOG", refreshToken !== token);
 
-    if (refreshToken !== token) {
+
+
+    if (refreshToken.trim() !== token.trim()) {
       throw { message: 'incorrect token' };
     }
 
