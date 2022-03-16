@@ -16,7 +16,7 @@ module.exports = async (req, res, next) => {
     const { id, isRefreshToken } = jwt.verify(token, process.env.JWT_SECRET);
 
     if (isRefreshToken) {
-      throw 'incorrect token';
+      throw 'not a access token';
     }
 
     const userTokensQuery = {
@@ -41,7 +41,7 @@ module.exports = async (req, res, next) => {
     next();
   } catch (err) {
     return res.status(401).send({
-      message: JSON.stringify(err)
+      message: err.message || JSON.stringify(err)
     });
   }
 }

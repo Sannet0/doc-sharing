@@ -182,11 +182,7 @@ const authWithRefToken = async (req, res) => {
   const token = req.body.refreshToken;
 
   try {
-    if (!token) {
-      return res.status(400).send({ message: 'Missing token' });
-    }
     const { id, isRefreshToken } = jwt.verify(token, process.env.JWT_SECRET);
-    console.log("isRefreshToken", isRefreshToken);
 
     if (!isRefreshToken) {
       throw { message: 'not a refresh token' };
@@ -204,11 +200,6 @@ const authWithRefToken = async (req, res) => {
     }
     const matchedUsers = await db.query(userTokensQuery);
     const { refreshToken } = matchedUsers.rows[0];
-
-    console.log('REF TOKEN', refreshToken, 'TOKEN', token);
-    console.log("LOOOG", refreshToken !== token);
-
-
 
     if (refreshToken.trim() !== token.trim()) {
       throw { message: 'incorrect token' };

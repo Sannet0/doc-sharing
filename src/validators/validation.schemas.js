@@ -22,7 +22,12 @@ const signupSchema = Joi.object({
   avatarImage: Joi.string().custom(base64Parse).base64().custom(origValue).allow(null, '')
 });
 
+const tokenSchema = Joi.object({
+  refreshToken: Joi.string().trim().required()
+});
+
 module.exports = {
   signinSchema,
-  signupSchema
+  signupSchema,
+  tokenSchema
 }
