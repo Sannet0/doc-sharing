@@ -179,19 +179,12 @@ const signin = async (req, res) => {
 }
 
 const authWithRefToken = async (req, res) => {
-  let refreshToken = req.body.refreshToken || ' ';
+  let token = req.body.refreshToken;
 
   try {
-    const modifiedRefreshToken = refreshToken.split(' ');
-    console.log('1');
-    const type = modifiedRefreshToken[0];
-    console.log('2');
-    const token = modifiedRefreshToken[1];
-
-    if (type !== 'Bearer') {
-      throw { message: 'invalid token type' };
+    if (!token) {
+      return res.status(400).send({ message: 'Missing token' });
     }
-
     const { id, isRefreshToken } = jwt.verify(token, process.env.JWT_SECRET);
 
     if (!isRefreshToken) {
