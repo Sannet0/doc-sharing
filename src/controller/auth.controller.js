@@ -179,12 +179,12 @@ const signin = async (req, res) => {
 }
 
 const authWithRefToken = async (req, res) => {
-  let authHeader = req.header('Authorization') || ' ';
+  let refreshToken = req.body.refreshToken || ' ';
 
   try {
-    authHeader = authHeader.split(' ');
-    const type = authHeader[0];
-    const token = authHeader[1];
+    refreshToken = refreshToken.split(' ');
+    const type = refreshToken[0];
+    const token = refreshToken[1];
 
     if (type !== 'Bearer') {
       throw { message: 'invalid token type' };
