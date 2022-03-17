@@ -1,5 +1,7 @@
-const { signin, signup } = require('../controller/auth.controller');
+const { signin, signup, authWithRefToken } = require('../controller/auth.controller');
 const { errorsCodes } = require('../consts/server-codes');
+const jwt = require('jsonwebtoken');
+const {values} = require('pg/lib/native/query');
 jest.mock('password-hash', () => ({
   generate: (password) => {
     return 'hash';
@@ -10,7 +12,18 @@ jest.mock('password-hash', () => ({
 }));
 jest.mock('jsonwebtoken', () => ({
   sign: (payload, secret, options) => {
-    return 'token'
+    return 'token';
+  },
+  verify: (token, secret) => {
+    if (token === 'ref') {
+      return { id: 1, isRefreshToken: true };
+    }
+    if (token === 'ref2') {
+      return { id: 2, isRefreshToken: true };
+    }
+    if (token === 'acc') {
+      return { id: 3, isRefreshToken: false };
+    }
   }
 }));
 jest.mock('../modules/database.module', () => ({
@@ -64,6 +77,18 @@ jest.mock('../modules/database.module', () => ({
     }
     if (replacedQuery === 'UPDATEusersSETaccess_token=$1,refresh_token=$2WHEREid=$3') {
       return { rows: [] }
+    }
+    if (replacedQuery === 'SELECTrefresh_tokenas"refreshToken"FROMusersWHEREid=$1LIMIT1') {
+      if (stringValues === '1') {
+        return { rows: [{
+            refreshToken: 'ref'
+        }] }
+      }
+      if (stringValues === '2') {
+        return { rows: [{
+            refreshToken: ''
+          }] }
+      }
     }
 
     console.log('Query', replacedQuery, 'Values', stringValues)
@@ -240,13 +265,58 @@ describe('registration', () => {
     });
   });
 });
-describe('registration', () => {
+
+describe('jwt flow', () => {
   beforeEach(() => {
     res.text = '';
     res.statusCode = 200;
   });
 
-  it('', async () => {
+  it('should return code 200 and new tokens', async () => {
+    const req = {
+      body: {
+        refreshToken: 'ref'
+      }
+    };
 
+    await authWithRefToken(req, res);
+
+    expect(res.statusCode).toEqual(200);
+    expect(res.text).toEqual({
+      authData: {
+        accessToken: 'token',
+        refreshToken: 'token'
+      }
+    });
+  });
+  it('should return status code 403 and message "not a refresh token"', async () => {
+    const req = {
+      body: {
+        refreshToken: 'acc'
+      }
+    };
+
+    await authWithRefToken(req, res);
+
+    expect(res.statusCode).toEqual(403);
+    expect(res.text).toEqual({
+      code: errorsCodes.invalidToken,
+      message: 'not a refresh token'
+    });
+  });
+  it('should return status code 403 and message "incorrect token"', async () => {
+    const req = {
+      body: {
+        refreshToken: 'ref2'
+      }
+    };
+
+    await authWithRefToken(req, res);
+
+    expect(res.statusCode).toEqual(403);
+    expect(res.text).toEqual({
+      code: errorsCodes.invalidToken,
+      message: 'incorrect token'
+    });
   });
 });
