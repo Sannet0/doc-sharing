@@ -21,11 +21,11 @@
   "dependencies": {
     "dotenv": "^16.0.0",
     "express": "^4.17.3",
-    "express-formidable": "^1.2.0",
     "install": "^0.13.0",
     "jest": "^27.5.1",
     "joi": "^17.6.0",
     "jsonwebtoken": "^8.5.1",
+    "multiparty": "^4.2.3",
     "npm": "^8.5.2",
     "password-hash": "^1.2.2",
     "pg": "^8.7.3",

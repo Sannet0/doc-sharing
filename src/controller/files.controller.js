@@ -1,22 +1,32 @@
 const fsPromises = require('fs').promises;
 const fs = require('fs');
+const multiparty = require('multiparty');
+const { v4: uuid } = require('uuid');
 const { correctOriginPath, extractTypeBase64 } = require('../consts/base-const')
 const { errorsCodes } = require('../consts/server-codes');
-const { v4: uuid } = require('uuid');
 const db = require('../modules/database.module');
+const util = require('util');
 
 const uploadFile = async (req, res) => {
   //let { folderId, content, name } = req.body;
-  console.log("LOOOG", req.files);
-  console.log("LOOOG", req.fields);
-  console.log("LOOOG", req.body);
   const  { id } = req.user;
+  const form = new multiparty.Form();
 
-  return res.status(500).send({
-    1: req.files,
-    2: req.fields,
-    3: req.body
+  form.parse(req, function(err, fields, files) {
+    // res.writeHead(200, { 'content-type': 'text/plain' });
+    // res.write('received upload:\n\n');
+    //res.end(util.inspect({ fields: fields, files: files }));
+
+    return res.status(200).send({
+      fields, files
+    });
   });
+
+  // form.on('file', async (name,file) => {
+  //   return res.status(200).send({
+  //     name, file
+  //   });
+  // })
 
   try {
     // content = extractTypeBase64(content);
