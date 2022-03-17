@@ -12,6 +12,12 @@ const uploadFile = async (req, res) => {
   console.log("LOOOG", req.body);
   const  { id } = req.user;
 
+  return res.status(500).send({
+    1: req.files,
+    2: req.fields,
+    3: req.body
+  });
+
   try {
     // content = extractTypeBase64(content);
     //
