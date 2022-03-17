@@ -2,7 +2,7 @@
   "swagger": "2.0",
   "info": {
     "title": "Doc-sharing API",
-    "version": "1.2.0"
+    "version": "1.2.1"
   },
   "host": "exceedteam.my",
   "basePath": "/doc-sharing-api",
@@ -64,6 +64,31 @@
         }
       }
     },
+    "/token": {
+      "post": {
+        "tags": ["authorisation"],
+        "summary": "update tokens",
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/TokenUpdate"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/Tokens"
+            }
+          }
+        }
+      }
+    },
     "/folders?folderId={folderId}": {
       "get": {
         "tags": ["folder"],
@@ -84,7 +109,12 @@
               "$ref": "#/definitions/FolderInfo"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
       },
       "delete": {
         "tags": ["folder"],
@@ -102,7 +132,12 @@
           "200": {
             "description": "OK"
           }
-        }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
       }
     },
     "/folders": {
@@ -127,7 +162,12 @@
               "$ref": "#/definitions/CreatedFolder"
             }
           }
-        }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
       },
       "patch": {
         "tags": ["folder"],
@@ -147,7 +187,42 @@
           "200": {
             "description": "OK"
           }
-        }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/file": {
+      "post": {
+        "tags": ["files"],
+        "summary": "upload file on server NEED JWT",
+        "description": "upload file on server",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/UploadFile"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "$ref": "#/definitions/File"
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
       }
     }
   },
@@ -186,18 +261,29 @@
             }
           }
         },
-        "tag": {
-          "type": "object",
-          "properties": {
-            "accessToken": {
-              "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTA2LCJpc1JlZlRva2VuIjpmYWxzZSwiaWF0IjoxNjQ2OTg1NTMzLCJleHAiOjE2NDY5ODczMzN9.7jRdDHAQSO36b-iTa0j25R82tZQdysI0iO8LenI9YDo",
-              "type": "string"
-            },
-            "refreshToken": {
-              "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTA2LCJpc1JlZlRva2VuIjp0cnVlLCJpYXQiOjE2NDY5ODU1MzMsImV4cCI6MTY0NzA3MTkzM30.iQyzyOvU6TpW9rj4Ss3YFyG0_npS56W5-c2xKFp5NAY",
-              "type": "string"
-            }
-          }
+        "authData": {
+          "$ref": "#/definitions/AuthData"
+        }
+      }
+    },
+    "Tokens": {
+      "type": "object",
+      "properties": {
+        "authData": {
+          "$ref": "#/definitions/AuthData"
+        }
+      }
+    },
+    "AuthData" : {
+      "type": "object",
+      "properties": {
+        "accessToken": {
+          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTA2LCJpc1JlZlRva2VuIjpmYWxzZSwiaWF0IjoxNjQ2OTg1NTMzLCJleHAiOjE2NDY5ODczMzN9.7jRdDHAQSO36b-iTa0j25R82tZQdysI0iO8LenI9YDo",
+          "type": "string"
+        },
+        "refreshToken": {
+          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTA2LCJpc1JlZlRva2VuIjp0cnVlLCJpYXQiOjE2NDY5ODU1MzMsImV4cCI6MTY0NzA3MTkzM30.iQyzyOvU6TpW9rj4Ss3YFyG0_npS56W5-c2xKFp5NAY",
+          "type": "string"
         }
       }
     },
@@ -205,43 +291,27 @@
       "type": "object",
       "properties": {
         "id": {
+          "example": 1,
           "type": "number"
         },
         "name": {
+          "example": "folder",
           "type": "string"
         },
         "originFolderId": {
+          "example": null,
           "type": "number"
         },
         "folders": {
           "type": "array",
-          "properties": {
-            "id": {
-              "type": "number"
-            },
-            "name": {
-              "type": "string"
-            }
+          "items": {
+            "$ref": "#/definitions/Folder"
           }
         },
         "files": {
           "type": "array",
-          "properties": {
-            "id": {
-              "type": "number"
-            },
-            "path": {
-              "type": "string"
-            },
-            "displayName": {
-              "type": "string"
-            },
-            "type": {
-              "type": "string"
-            },
-            "creatorId": {
-              "type": "number"
-            }
+          "items": {
+            "$ref": "#/definitions/File"
           }
         }
       }
@@ -285,6 +355,20 @@
         }
       }
     },
+    "UploadFile": {
+      "type": "object",
+      "properties": {
+        "folderId": {
+          "type": "integer"
+        },
+        "content": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    },
     "CreateFolder": {
       "type": "object",
       "properties": {
@@ -307,6 +391,48 @@
         },
         "originFolderId": {
           "type": "number"
+        }
+      }
+    },
+    "Folder": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "example": 2,
+          "type": "number"
+        },
+        "name": {
+          "example": "folder2",
+          "type": "string"
+        }
+      }
+    },
+    "File": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "example": 1,
+          "type": "number"
+        },
+        "displayName": {
+          "example": "file",
+          "type": "string"
+        },
+        "type": {
+          "example": "txt",
+          "type": "string"
+        },
+        "creatorId": {
+          "example": 1,
+          "type": "number"
+        }
+      }
+    },
+    "TokenUpdate": {
+      "type": "object",
+      "properties": {
+        "refreshToken": {
+          "type": "string"
         }
       }
     }

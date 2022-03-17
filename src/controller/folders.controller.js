@@ -7,7 +7,7 @@ const isFolderExist = async (userId, folderId) => {
     text: `
         SELECT * FROM folders
         WHERE "creator_id" = $1
-        AND "name" = $2
+        AND "id" = $2
         LIMIT 1
       `,
     values: [userId, folderId]
