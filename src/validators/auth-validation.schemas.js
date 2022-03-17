@@ -1,13 +1,5 @@
 const Joi = require('joi');
-
-const base64Parse = (base64) => {
-  const data = base64.split(',');
-  return data[1];
-};
-
-const origValue = (value, helpers) => {
-  return  helpers.original;
-}
+const { base64Parse, origValue } = require('../consts/validate-const');
 
 const signinSchema = Joi.object({
   email: Joi.string().trim().email().min(4).max(32).required(),

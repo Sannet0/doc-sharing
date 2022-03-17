@@ -9,6 +9,7 @@ const prodSwaggerDocument = require('./swagger/swagger-prod.json');
 const devSwaggerDocument = require('./swagger/swagger-dev.json');
 const authRoutes = require('./routes/auth.route');
 const folderRoutes = require('./routes/folders.route');
+const fileRoutes = require('./routes/files.route')
 const jwtMiddleware = require('./middelwares/jwt.middelwares');
 
 const port = process.env.PORT || 3000;
@@ -21,6 +22,7 @@ app.use(express.json({ limit: '50mb' }));
 
 app.use('/auth', authRoutes);
 app.use('/folders', jwtMiddleware, folderRoutes);
+app.use('/file', jwtMiddleware, fileRoutes);
 app.use('/docs', swaggerUi.serve);
 
 if (process.env.IS_PRODUCTION === '1') {
