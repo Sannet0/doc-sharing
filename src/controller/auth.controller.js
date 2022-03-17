@@ -1,21 +1,10 @@
 const db = require('../modules/database.module');
 const passwordHash = require('password-hash');
 const jwt = require('jsonwebtoken');
-const fs = require('fs').promises;
-const con = require('../consts/base-const');
+const fsPromises = require('fs').promises;
+const { correctOriginPath, extractTypeBase64 } = require('../consts/base-const');
 const sharp = require('sharp');
 const { errorsCodes } = require('../consts/server-codes');
-
-const extractTypeBase64 = (image) => {
-  const data = {
-    base64: '',
-    type: ''
-  }
-  const [ info, base64 ] = image?.split(',') || [];
-  data.base64 = base64 || '';
-  data.type = info?.split(/[^a-zа-яё0-9]/gi)[2] || '';
-  return data;
-}
 
 const generateTokenPayload = (userId, isRefreshToken) => {
   return { id: userId, isRefreshToken };
@@ -66,15 +55,15 @@ const signup = async (req, res) => {
     const userId =  createUsersReturnValues.rows[0].id;
 
     if(imageBase64) {
-      const filePath = con.correctOriginPath() + '/src/files/temporary/avatar-' + email + '.' + avatarImage.type;
+      const filePath = correctOriginPath() + '/src/files/temporary/avatar-' + email + '.' + avatarImage.type;
 
-      await fs.writeFile(filePath, imageBase64, { encoding: 'base64' });
+      await fsPromises.writeFile(filePath, imageBase64, { encoding: 'base64' });
       const miniatureBuffer = await sharp(filePath).resize(48).toBuffer();
       const base64orig = 'data:image/' + avatarImage.type + ';base64,';
 
       originalAvatarImage = base64orig + imageBase64;
       miniatureAvatarImage = base64orig + miniatureBuffer.toString('base64');
-      await fs.rm(filePath);
+      await fsPromises.rm(filePath);
 
       const saveUserAvatarImage = {
         text: `

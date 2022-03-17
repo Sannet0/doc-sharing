@@ -10,6 +10,18 @@ const correctOriginPath = (backSteps = 0) => {
   return path;
 }
 
+const extractTypeBase64 = (image) => {
+  const data = {
+    base64: '',
+    type: ''
+  }
+  const [ info, base64 ] = image?.split(',') || [];
+  data.base64 = base64 || '';
+  data.type = info?.split(/[^a-zа-яё0-9]/gi)[2] || '';
+  return data;
+}
+
 module.exports = {
-  correctOriginPath
+  correctOriginPath,
+  extractTypeBase64
 }
