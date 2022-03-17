@@ -12,9 +12,9 @@ module.exports = (validator, isQuery = false) => {
 
       next();
     } catch (err) {
-      return res.status(500).send({
+      return res.status(400).send({
         code: errorsCodes.validatorError,
-        error: JSON.stringify(err.message || '')
+        error: err.message || JSON.stringify(err)
       });
     }
   }

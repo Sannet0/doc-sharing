@@ -18,7 +18,30 @@ const extractTypeBase64 = (image) => {
 }
 
 const generateTokenPayload = (userId, isRefreshToken) => {
-  return { id: userId, isRefreshToken }
+  return { id: userId, isRefreshToken };
+}
+
+const generateUserTokens = async (userId) => {
+  const accessTokenPayload = generateTokenPayload(userId, false);
+  const refreshTokenPayload = generateTokenPayload(userId, true);
+
+  const authData = {
+    accessToken: jwt.sign(accessTokenPayload, '' + process.env.JWT_SECRET, { expiresIn: '' + process.env.ACCESS_TOKEN_EXPIRES_IN }),
+    refreshToken: jwt.sign(refreshTokenPayload, '' + process.env.JWT_SECRET, { expiresIn: '' + process.env.REFRESH_TOKEN_EXPIRES_IN })
+  }
+
+  const updateTokensQuery = {
+    text: `
+        UPDATE users
+        SET access_token = $1,
+            refresh_token = $2
+        WHERE id = $3
+      `,
+    values: [authData.accessToken, authData.refreshToken, userId],
+  }
+  await db.query(updateTokensQuery);
+
+  return authData;
 }
 
 const signup = async (req, res) => {
@@ -133,21 +156,17 @@ const signin = async (req, res) => {
     const matchedImages = await db.query(imageQuery);
     const actualImage = matchedImages.rows[0];
 
-    const accessTokenPayload = generateTokenPayload(accurateUser.id, false);
-    const refreshTokenPayload = generateTokenPayload(accurateUser.id, true);
+    const authData = await generateUserTokens(accurateUser.id);
 
     return res.status(200).send({
       userData: {
         displayName: accurateUser.displayname || '',
         fullName: accurateUser.fullname,
         email: accurateUser.email,
-        miniatureAvatar: Buffer.from(actualImage?.miniature  || '').toString('base64'),
-        originalAvatar: Buffer.from(actualImage?.miniature  || '').toString('base64')
+        miniatureAvatar: actualImage?.miniature  || '',
+        originalAvatar: actualImage?.original  || ''
       },
-      authData: {
-        accessToken: jwt.sign(accessTokenPayload, '' + process.env.JWT_SECRET, { expiresIn: '' + process.env.ACCESS_TOKEN_EXPIRES_IN }),
-        refreshToken: jwt.sign(refreshTokenPayload, '' + process.env.JWT_SECRET, { expiresIn: '' + process.env.REFRESH_TOKEN_EXPIRES_IN })
-      }
+      authData
     });
   } catch (err) {
     console.error('auth.controller "signin" function error: ', err);
@@ -159,36 +178,43 @@ const signin = async (req, res) => {
   }
 }
 
-const authWithRefToken = (req, res) => {
-  let authHeader = req.header('Authorization') || ' ';
+const authWithRefToken = async (req, res) => {
+  const token = req.body.refreshToken;
 
   try {
-    authHeader = authHeader.split(' ');
-    const type = authHeader[0];
-    const token = authHeader[1];
+    const { id, isRefreshToken } = jwt.verify(token, process.env.JWT_SECRET);
 
-    if (type !== 'Bearer') {
-      return res.status(403).send({
-        code: errorsCodes.invalidToken,
-        message: 'invalid token type'
-      });
+    if (!isRefreshToken) {
+      throw { message: 'not a refresh token' };
     }
 
-    const userInfo = jwt.verify(token, process.env.JWT_SECRET);
+    const userTokensQuery = {
+      text: `
+        SELECT 
+          refresh_token as "refreshToken"
+        FROM users
+        WHERE id = $1
+        LIMIT 1
+      `,
+      values: [id],
+    }
+    const matchedUsers = await db.query(userTokensQuery);
+    const { refreshToken } = matchedUsers.rows[0];
 
-    const accessTokenPayload = generateTokenPayload(userInfo.id, false);
-    const refreshTokenPayload = generateTokenPayload(userInfo.id, true);
+    if (refreshToken.trim() !== token.trim()) {
+      throw { message: 'incorrect token' };
+    }
+
+    const authData = await generateUserTokens(id);
 
     return res.status(200).send({
-      authData: {
-        accessToken: jwt.sign(accessTokenPayload, '' + process.env.JWT_SECRET, { expiresIn: '' + process.env.ACCESS_TOKEN_EXPIRES_IN }),
-        refreshToken: jwt.sign(refreshTokenPayload, '' + process.env.JWT_SECRET, { expiresIn: '' + process.env.REFRESH_TOKEN_EXPIRES_IN })
-      }
+      authData
     });
   } catch (err) {
+
     return res.status(403).send({
       code: errorsCodes.invalidToken,
-      message: JSON.stringify(err)
+      message: err.message || JSON.stringify(err)
     });
   }
 }
