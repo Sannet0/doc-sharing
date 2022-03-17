@@ -224,6 +224,31 @@
           }
         ]
       }
+    },
+    "/file?fileId={fileId}": {
+      "get": {
+        "description": "",
+        "tags": ["files"],
+        "summary": "download file from server NEED JWT",
+        "parameters": [
+          {
+            "name": "fileId",
+            "in": "query",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "return a file stream"
+          }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
     }
   },
   "securityDefinitions": {
