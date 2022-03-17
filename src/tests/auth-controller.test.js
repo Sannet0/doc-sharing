@@ -90,8 +90,6 @@ jest.mock('../modules/database.module', () => ({
           }] }
       }
     }
-
-    console.log('Query', replacedQuery, 'Values', stringValues)
   }
 }));
 jest.mock('fs', () => ({
